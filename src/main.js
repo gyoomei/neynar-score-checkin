@@ -6,19 +6,22 @@ const SCORE_READER = '0xd3C43A38D1D3E47E9c420a733e439B03FAAdebA8'
 const BASE_CHAIN_ID = 8453
 const BASE_CHAIN_HEX = '0x2105'
 const BASE_RPC_URL = import.meta.env.VITE_BASE_RPC_URL || 'https://base-rpc.publicnode.com'
+const SCORE_RPC_URLS = Array.from(new Set([
+  BASE_RPC_URL,
+  'https://mainnet.base.org',
+  'https://base.llamarpc.com'
+].filter(Boolean)))
 const DEFAULT_FEE_ETH = import.meta.env.VITE_CHECKIN_FEE_ETH || '0.000001'
 const DEFAULT_RECIPIENT = import.meta.env.VITE_CHECKIN_RECIPIENT || ''
 const APP_URL = import.meta.env.VITE_APP_URL || window.location.origin + window.location.pathname
 
 const ABI = [
-  'function getScore(uint256 fid) view returns (uint24 score)',
-  'function getScore(address verifier) view returns (uint24 score)'
+  'function getScore(uint256 fid) view returns (uint24 score)'
 ]
 
 const state = {
   context: null,
   fid: '',
-  address: '',
   score: null,
   wallet: '',
   recipient: DEFAULT_RECIPIENT,
@@ -68,22 +71,18 @@ function renderScorePanel(label, tone) {
         <span>Raw ${state.score?.raw ?? '—'} / 1,000,000</span>
       </div>
 
-      <div class="form-card">
+      <div class="form-card score-only">
         <label>Farcaster FID</label>
         <div class="input-row">
-          <input id="fidInput" inputmode="numeric" value="${state.fid}" placeholder="e.g. 3" />
-          <button id="scoreBtn">${state.loading ? 'Checking…' : 'Check'}</button>
+          <input id="fidInput" inputmode="numeric" value="${state.fid}" placeholder="e.g. 3" aria-label="Farcaster FID" />
+          <button id="scoreBtn" ${state.loading ? 'disabled' : ''}>${state.loading ? 'Checking…' : 'Check score'}</button>
         </div>
-        <label>Wallet address</label>
-        <div class="input-row">
-          <input id="addrInput" value="${state.address}" placeholder="0x..." />
-          <button id="walletScoreBtn" class="secondary">By wallet</button>
-        </div>
+        <p class="field-help">Enter a Farcaster FID. Wallet lookup removed so this stays focused on Neynar Farcaster score.</p>
       </div>
 
       <div class="info-strip">
-        <b>No API key</b>
-        <span>Reads Neynar's score reader contract directly on Base.</span>
+        <b>Farcaster score</b>
+        <span>Reads Neynar's onchain score by FID on Base with RPC fallback.</span>
       </div>
     </section>`
 }
@@ -166,10 +165,9 @@ function render() {
   qs('#shareBtn').addEventListener('click', shareApp)
 
   if (state.activeTab === 'score') {
-    qs('#fidInput').addEventListener('input', (e) => { state.fid = e.target.value.trim() })
-    qs('#addrInput').addEventListener('input', (e) => { state.address = e.target.value.trim() })
+    qs('#fidInput').addEventListener('input', (e) => { state.fid = e.target.value.replace(/\D/g, '') })
+    qs('#fidInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') checkScoreByFid() })
     qs('#scoreBtn').addEventListener('click', checkScoreByFid)
-    qs('#walletScoreBtn').addEventListener('click', checkScoreByAddress)
   } else {
     qs('#recipientInput').addEventListener('input', (e) => { state.recipient = e.target.value.trim() })
     qs('#feeInput').addEventListener('input', (e) => { state.feeEth = e.target.value.trim() })
@@ -181,35 +179,38 @@ function render() {
 function setStatus(message) { state.status = message; render() }
 function setLoading(value, message) { state.loading = value; if (message) state.status = message; render() }
 
-async function readContract() {
-  const provider = new ethers.JsonRpcProvider(BASE_RPC_URL, BASE_CHAIN_ID)
-  return new ethers.Contract(SCORE_READER, ABI, provider)
+async function readScoreFromRpc(fid, rpcUrl) {
+  const provider = new ethers.JsonRpcProvider(rpcUrl, BASE_CHAIN_ID)
+  const contract = new ethers.Contract(SCORE_READER, ABI, provider)
+  return contract['getScore(uint256)'](BigInt(fid))
+}
+
+function cleanFid(value) {
+  return String(value || '').replace(/\D/g, '')
 }
 
 async function checkScoreByFid() {
-  if (!state.fid || Number.isNaN(Number(state.fid))) return setStatus('Enter a valid FID first')
-  setLoading(true, 'Reading Neynar score by FID…')
-  try {
-    const contract = await readContract()
-    const raw = await contract['getScore(uint256)'](BigInt(state.fid))
-    state.score = { raw: Number(raw), normalized: Number(raw) / 1_000_000, type: 'fid', value: state.fid }
-    setLoading(false, `Score loaded for FID ${state.fid}`)
-  } catch (err) {
-    setLoading(false, err?.message || 'Failed to read score')
-  }
-}
+  const fid = cleanFid(state.fid)
+  if (!fid || BigInt(fid) <= 0n) return setStatus('Enter a valid Farcaster FID first')
+  state.fid = fid
+  setLoading(true, `Reading Neynar score for FID ${fid}…`)
 
-async function checkScoreByAddress() {
-  if (!ethers.isAddress(state.address)) return setStatus('Enter a valid wallet address')
-  setLoading(true, 'Reading Neynar score by wallet…')
-  try {
-    const contract = await readContract()
-    const raw = await contract['getScore(address)'](state.address)
-    state.score = { raw: Number(raw), normalized: Number(raw) / 1_000_000, type: 'address', value: state.address }
-    setLoading(false, `Score loaded for ${short(state.address)}`)
-  } catch (err) {
-    setLoading(false, err?.message || 'Failed to read score')
+  const errors = []
+  for (const rpcUrl of SCORE_RPC_URLS) {
+    try {
+      const raw = await readScoreFromRpc(fid, rpcUrl)
+      const rawNumber = Number(raw)
+      state.score = { raw: rawNumber, normalized: rawNumber / 1_000_000, type: 'fid', value: fid }
+      setLoading(false, rawNumber > 0 ? `Score loaded for FID ${fid}` : `No Neynar score found for FID ${fid}`)
+      return
+    } catch (err) {
+      errors.push(`${rpcUrl}: ${err?.shortMessage || err?.message || 'RPC failed'}`)
+    }
   }
+
+  state.score = null
+  state.errors = errors
+  setLoading(false, 'Could not read Neynar score. RPC unavailable, try again.')
 }
 
 async function getWalletProvider() {
@@ -251,7 +252,6 @@ async function connectWallet() {
     await ensureBase(provider)
     const accounts = await provider.request({ method: 'eth_requestAccounts' })
     state.wallet = accounts?.[0] || ''
-    if (state.wallet && !state.address) state.address = state.wallet
     setStatus(`Connected ${short(state.wallet)}`)
   } catch (err) {
     setStatus(err?.message || 'Wallet connection failed')
@@ -284,7 +284,7 @@ async function checkIn() {
 
 async function shareApp() {
   const scoreText = state.score ? ` My Neynar score is ${state.score.normalized.toFixed(3)}.` : ''
-  const text = `Check your Farcaster Neynar score and check in on Base.${scoreText}`
+  const text = `Check your Neynar Farcaster score on Base.${scoreText}`
   try {
     await sdk.actions.composeCast({ text, embeds: [APP_URL] })
   } catch {
