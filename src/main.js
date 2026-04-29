@@ -77,12 +77,12 @@ function renderScorePanel(label, tone) {
           <input id="fidInput" inputmode="numeric" value="${state.fid}" placeholder="e.g. 3" aria-label="Farcaster FID" />
           <button id="scoreBtn" ${state.loading ? 'disabled' : ''}>${state.loading ? 'Checking…' : 'Check score'}</button>
         </div>
-        <p class="field-help">Enter a Farcaster FID. Wallet lookup removed so this stays focused on Neynar Farcaster score.</p>
+        <p class="field-help">Enter a Farcaster FID. Uses the server Neynar API when configured, with onchain Base fallback.</p>
       </div>
 
       <div class="info-strip">
         <b>Farcaster score</b>
-        <span>Reads Neynar's onchain score by FID on Base with RPC fallback.</span>
+        <span>Uses Neynar API securely via backend, then falls back to Base onchain score.</span>
       </div>
     </section>`
 }
@@ -189,6 +189,24 @@ function cleanFid(value) {
   return String(value || '').replace(/\D/g, '')
 }
 
+async function readScoreFromNeynarApi(fid) {
+  const response = await fetch(`/api/neynar-score?fid=${encodeURIComponent(fid)}`, {
+    headers: { accept: 'application/json' }
+  })
+  const payload = await response.json().catch(() => ({}))
+  if (!response.ok) throw new Error(payload?.error || 'Neynar API unavailable')
+
+  const normalized = Math.max(0, Math.min(1, Number(payload.score || 0)))
+  return {
+    raw: Math.round(normalized * 1_000_000),
+    normalized,
+    type: 'fid',
+    source: 'neynar-api',
+    value: fid,
+    profile: payload
+  }
+}
+
 async function checkScoreByFid() {
   const fid = cleanFid(state.fid)
   if (!fid || BigInt(fid) <= 0n) return setStatus('Enter a valid Farcaster FID first')
@@ -196,12 +214,21 @@ async function checkScoreByFid() {
   setLoading(true, `Reading Neynar score for FID ${fid}…`)
 
   const errors = []
+
+  try {
+    state.score = await readScoreFromNeynarApi(fid)
+    setLoading(false, `Neynar API score loaded for FID ${fid}`)
+    return
+  } catch (err) {
+    errors.push(`Neynar API: ${err?.message || 'unavailable'}`)
+  }
+
   for (const rpcUrl of SCORE_RPC_URLS) {
     try {
       const raw = await readScoreFromRpc(fid, rpcUrl)
       const rawNumber = Number(raw)
-      state.score = { raw: rawNumber, normalized: rawNumber / 1_000_000, type: 'fid', value: fid }
-      setLoading(false, rawNumber > 0 ? `Score loaded for FID ${fid}` : `No Neynar score found for FID ${fid}`)
+      state.score = { raw: rawNumber, normalized: rawNumber / 1_000_000, type: 'fid', source: 'onchain', value: fid }
+      setLoading(false, rawNumber > 0 ? `Onchain score loaded for FID ${fid}` : `No Neynar score found for FID ${fid}`)
       return
     } catch (err) {
       errors.push(`${rpcUrl}: ${err?.shortMessage || err?.message || 'RPC failed'}`)
@@ -210,7 +237,7 @@ async function checkScoreByFid() {
 
   state.score = null
   state.errors = errors
-  setLoading(false, 'Could not read Neynar score. RPC unavailable, try again.')
+  setLoading(false, 'Could not read Neynar score. API and RPC unavailable, try again.')
 }
 
 async function getWalletProvider() {
