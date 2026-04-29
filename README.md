@@ -47,9 +47,31 @@ VITE_BASE_RPC_URL=https://base-rpc.publicnode.com
 
 `VITE_CHECKIN_RECIPIENT` wajib diisi sebelum production, karena check-in fee akan dikirim ke address ini.
 
+## Deploy ke Vercel
+
+Project ini sudah punya `vercel.json`. Vercel harus build dari domain root, jadi `vite.config.js` otomatis memakai `base: '/'` saat env `VERCEL=1` aktif. Ini mencegah blank page karena asset path `/neynar-score-checkin/assets/...` tidak ada di Vercel.
+
+Setting Vercel:
+
+```text
+Framework Preset: Other / Vite
+Build Command: npm run build
+Output Directory: dist
+Install Command: npm ci
+```
+
+Optional env di Vercel:
+
+```env
+VITE_APP_URL=https://domain-vercel-kamu.vercel.app/
+VITE_CHECKIN_RECIPIENT=0xReceiverAddress
+VITE_CHECKIN_FEE_ETH=0.000001
+VITE_BASE_RPC_URL=https://base-rpc.publicnode.com
+```
+
 ## Deploy GitHub Pages
 
-Repo ini sudah disiapkan dengan Vite `base: '/neynar-score-checkin/'`.
+Repo ini juga tetap support GitHub Pages dengan Vite `base: '/neynar-score-checkin/'` saat bukan build Vercel.
 
 ```bash
 npm run build

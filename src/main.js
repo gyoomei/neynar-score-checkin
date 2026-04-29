@@ -8,7 +8,7 @@ const BASE_CHAIN_HEX = '0x2105'
 const BASE_RPC_URL = import.meta.env.VITE_BASE_RPC_URL || 'https://base-rpc.publicnode.com'
 const DEFAULT_FEE_ETH = import.meta.env.VITE_CHECKIN_FEE_ETH || '0.000001'
 const DEFAULT_RECIPIENT = import.meta.env.VITE_CHECKIN_RECIPIENT || ''
-const APP_URL = import.meta.env.VITE_APP_URL || 'https://gyoomei.github.io/neynar-score-checkin/'
+const APP_URL = import.meta.env.VITE_APP_URL || window.location.origin + window.location.pathname
 
 const ABI = [
   'function getScore(uint256 fid) view returns (uint24 score)',
