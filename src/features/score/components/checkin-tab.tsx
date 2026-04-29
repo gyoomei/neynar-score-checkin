@@ -1,0 +1,291 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useFarcasterUser } from "@/neynar-farcaster-sdk/mini";
+import {
+  useAccount,
+  useConnect,
+  useSendTransaction,
+  useWaitForTransactionReceipt,
+} from "wagmi";
+import { NeynarWagmiProvider } from "@/neynar-web-sdk/blockchain";
+import { CheckInStatus } from "@/features/score/types";
+
+const GM_DATA = "0x676d" as const; // "gm" in hex
+
+function getStorageKey(fid: number) {
+  return `checkin_${fid}`;
+}
+
+function getCheckInStatus(fid: number): CheckInStatus {
+  if (typeof window === "undefined") {
+    return { canCheckIn: true, lastCheckIn: null, totalCheckIns: 0, streak: 0 };
+  }
+  try {
+    const raw = localStorage.getItem(getStorageKey(fid));
+    if (!raw) {
+      return { canCheckIn: true, lastCheckIn: null, totalCheckIns: 0, streak: 0 };
+    }
+    const parsed = JSON.parse(raw) as {
+      lastCheckIn: string;
+      totalCheckIns: number;
+      streak: number;
+    };
+    const last = new Date(parsed.lastCheckIn);
+    const diffHours = (Date.now() - last.getTime()) / (1000 * 60 * 60);
+    return {
+      canCheckIn: diffHours >= 24,
+      lastCheckIn: parsed.lastCheckIn,
+      totalCheckIns: parsed.totalCheckIns ?? 0,
+      streak: parsed.streak ?? 0,
+    };
+  } catch {
+    return { canCheckIn: true, lastCheckIn: null, totalCheckIns: 0, streak: 0 };
+  }
+}
+
+function saveCheckIn(fid: number): CheckInStatus {
+  const now = new Date();
+  const existing = getCheckInStatus(fid);
+
+  let streak = 1;
+  if (existing.lastCheckIn) {
+    const lastDate = new Date(existing.lastCheckIn);
+    const diffHours = (now.getTime() - lastDate.getTime()) / (1000 * 60 * 60);
+    // Continue streak if within 48h window, otherwise reset to 1
+    streak = diffHours < 48 ? existing.streak + 1 : 1;
+  }
+
+  const next = {
+    lastCheckIn: now.toISOString(),
+    totalCheckIns: existing.totalCheckIns + 1,
+    streak,
+  };
+  localStorage.setItem(getStorageKey(fid), JSON.stringify(next));
+  return {
+    canCheckIn: false,
+    lastCheckIn: now.toISOString(),
+    totalCheckIns: next.totalCheckIns,
+    streak: next.streak,
+  };
+}
+
+function formatTimeUntilNext(lastCheckIn: string): string {
+  const last = new Date(lastCheckIn);
+  const next = new Date(last.getTime() + 24 * 60 * 60 * 1000);
+  const diff = next.getTime() - Date.now();
+  if (diff <= 0) return "Now!";
+  const h = Math.floor(diff / (1000 * 60 * 60));
+  const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  return `${h}h ${m}m left`;
+}
+
+function CheckInInner() {
+  const { data: user } = useFarcasterUser();
+  const { address, isConnected } = useAccount();
+  const { connect, connectors } = useConnect();
+  const [status, setStatus] = useState<CheckInStatus | null>(null);
+  const [timeLabel, setTimeLabel] = useState("");
+  const [justDone, setJustDone] = useState(false);
+
+  useEffect(() => {
+    if (isConnected || connectors.length === 0) return;
+    const connector = connectors[0];
+    connect({ connector }, { onError: () => undefined });
+  }, [connect, connectors, isConnected]);
+
+  const {
+    sendTransaction,
+    data: txHash,
+    isPending: isSending,
+    error: sendError,
+    reset,
+  } = useSendTransaction();
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({ hash: txHash });
+
+  // Load status from localStorage
+  useEffect(() => {
+    if (!user?.fid) return;
+    const s = getCheckInStatus(user.fid);
+    setStatus(s);
+  }, [user?.fid]);
+
+  // Update countdown every 30s
+  useEffect(() => {
+    if (!status?.lastCheckIn || status.canCheckIn) return;
+    const update = () => {
+      if (status.lastCheckIn) {
+        setTimeLabel(formatTimeUntilNext(status.lastCheckIn));
+      }
+    };
+    update();
+    const interval = setInterval(update, 30000);
+    return () => clearInterval(interval);
+  }, [status]);
+
+  // On confirmed — read fresh from storage to avoid stale counts
+  useEffect(() => {
+    if (!isConfirmed || !user?.fid) return;
+    const updated = saveCheckIn(user.fid);
+    setStatus(updated);
+    setJustDone(true);
+  }, [isConfirmed, user?.fid]);
+
+  function handleCheckIn() {
+    reset();
+    setJustDone(false);
+    if (!address) return;
+    sendTransaction({
+      to: address,
+      value: 0n,
+      data: GM_DATA,
+    });
+  }
+
+  if (!user) {
+    return (
+      <div className="bg-blue-50 rounded-2xl p-6 text-center space-y-3">
+        <div className="text-4xl">🔒</div>
+        <p className="text-sm font-medium text-blue-700">
+          Open in Farcaster to check in
+        </p>
+        <p className="text-xs text-blue-400">
+          Check-in requires a Farcaster account
+        </p>
+      </div>
+    );
+  }
+
+  const canCheckIn = status?.canCheckIn ?? true;
+  const streak = status?.streak ?? 0;
+  const totalCheckIns = status?.totalCheckIns ?? 0;
+
+  return (
+    <div className="space-y-4">
+      {/* Stats header */}
+      <div className="bg-gradient-to-br from-blue-600 to-blue-500 rounded-2xl p-5 text-white">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="font-bold text-lg">Daily Check-in</h2>
+            <p className="text-blue-100 text-xs mt-0.5">
+              GM onchain on Base, no fee except gas
+            </p>
+          </div>
+          <div className="text-4xl">📅</div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-white/15 rounded-xl p-3 text-center">
+            <p className="text-2xl font-bold text-white">{streak}</p>
+            <p className="text-xs text-blue-100 mt-0.5">🔥 Streak</p>
+          </div>
+          <div className="bg-white/15 rounded-xl p-3 text-center">
+            <p className="text-2xl font-bold text-white">{totalCheckIns}</p>
+            <p className="text-xs text-blue-100 mt-0.5">Total Check-ins</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Info */}
+      <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 space-y-2">
+        <div className="flex items-center gap-2">
+          <span className="text-blue-500">💡</span>
+          <span className="text-sm font-semibold text-blue-700">
+            How Check-in Works
+          </span>
+        </div>
+        <ul className="text-xs text-blue-600 space-y-1 pl-6 list-disc">
+          <li>Sends a zero-value transaction to your own wallet</li>
+          <li>Data payload is <strong>gm</strong> (0x676d)</li>
+          <li>One check-in per 24 hours</li>
+          <li>Transaction on Base network</li>
+        </ul>
+      </div>
+
+      {/* Success */}
+      {(isConfirmed || justDone) && (
+        <div className="bg-green-50 border border-green-200 rounded-2xl p-4 flex items-center gap-3">
+          <span className="text-2xl">✅</span>
+          <div>
+            <p className="text-sm font-semibold text-green-700">
+              Check-in successful!
+            </p>
+            <p className="text-xs text-green-600 mt-0.5">
+              Streak: {streak} day{streak !== 1 ? "s" : ""} 🔥
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Tx hash */}
+      {txHash && (
+        <div className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 flex items-center gap-2">
+          <span className="text-xs text-gray-400">Tx:</span>
+          <a
+            href={`https://basescan.org/tx/${txHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-blue-500 hover:underline truncate"
+          >
+            {txHash.slice(0, 18)}...{txHash.slice(-6)}
+          </a>
+        </div>
+      )}
+
+      {/* Error */}
+      {sendError &&
+        !sendError.message.includes("rejected") &&
+        !sendError.message.includes("denied") && (
+          <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3 text-xs text-red-600">
+            Transaction failed. Make sure you have enough ETH on Base and try again.
+          </div>
+        )}
+
+      {/* CTA */}
+      {!canCheckIn && !justDone ? (
+        <div className="w-full py-4 rounded-2xl border-2 border-blue-200 bg-blue-50 text-center">
+          <p className="text-sm font-semibold text-blue-600">
+            Already checked in today ✓
+          </p>
+          <p className="text-xs text-blue-400 mt-1">Next: {timeLabel}</p>
+        </div>
+      ) : (
+        <button
+          onClick={handleCheckIn}
+          disabled={!isConnected || isSending || isConfirming || justDone}
+          className="w-full py-4 rounded-2xl bg-blue-600 text-white font-bold text-base active:scale-95 transition-all disabled:opacity-60 shadow-md shadow-blue-200 flex items-center justify-center gap-2"
+        >
+          {isSending ? (
+            <>
+              <span className="inline-block w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              Confirm in wallet...
+            </>
+          ) : isConfirming ? (
+            <>
+              <span className="inline-block w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              Processing...
+            </>
+          ) : justDone ? (
+            "✅ Check-in Complete!"
+          ) : !isConnected ? (
+            "Wallet Not Connected"
+          ) : (
+            <>
+              <span>🌤️</span>
+              GM Onchain
+            </>
+          )}
+        </button>
+      )}
+    </div>
+  );
+}
+
+export function CheckInTab() {
+  return (
+    <NeynarWagmiProvider>
+      <CheckInInner />
+    </NeynarWagmiProvider>
+  );
+}

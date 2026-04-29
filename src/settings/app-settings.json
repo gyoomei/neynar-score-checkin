@@ -1,0 +1,21 @@
+{
+  "name": "Neynar Score",
+  "shortName": "NeynarScore",
+  "subtitle": "Check score and daily check-in",
+  "description": "Check your Neynar Score on Farcaster, see your onchain reputation, and do daily check-ins with very low fees on Base.",
+  "shortDescription": "Check Neynar Score and daily check-in on Base",
+  "primaryCategory": "utility",
+  "tags": [
+    "neynar",
+    "score",
+    "farcaster",
+    "checkin",
+    "reputation"
+  ],
+  "splashBackgroundColor": "#EFF6FF",
+  "tagline": "Farcaster reputation, measured",
+  "requiredChains": [
+    "eip155:8453"
+  ],
+  "shareButtonTitle": "Check Score"
+}
