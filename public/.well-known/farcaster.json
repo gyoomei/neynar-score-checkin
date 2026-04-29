@@ -1,11 +1,16 @@
 {
+  "accountAssociation": {
+    "header": "eyJmaWQiOjI0MTQ3MCwidHlwZSI6ImF1dGgiLCJrZXkiOiIweDkyQzgyNTIwOTA3YjZDZmU2MUUzNjNmZTBFOWY2QjdjODJmQzdENTkifQ",
+    "payload": "eyJkb21haW4iOiJuZXluYXItc2NvcmUtY2hlY2tpbi52ZXJjZWwuYXBwIn0",
+    "signature": "W4iMIT/C6iQpcvOyJQ3HMsm16JliajsujWwIPYE0H3pynxiQyIxNjx1qF87jDpJ9E7dsVavlrHVmADodeVEDbxw="
+  },
   "miniapp": {
     "version": "1",
     "name": "Neynar Score Check-in",
-    "iconUrl": "https://gyoomei.github.io/neynar-score-checkin/icon.svg",
-    "homeUrl": "https://gyoomei.github.io/neynar-score-checkin/",
-    "imageUrl": "https://gyoomei.github.io/neynar-score-checkin/og.svg?v=2",
-    "splashImageUrl": "https://gyoomei.github.io/neynar-score-checkin/icon.svg",
+    "iconUrl": "https://neynar-score-checkin.vercel.app/icon.svg",
+    "homeUrl": "https://neynar-score-checkin.vercel.app/",
+    "imageUrl": "https://neynar-score-checkin.vercel.app/og.svg?v=3",
+    "splashImageUrl": "https://neynar-score-checkin.vercel.app/icon.svg",
     "splashBackgroundColor": "#08111f"
   }
 }
