@@ -7,7 +7,46 @@ import { ScoreCard } from "@/features/score/components/score-card";
 import { ShareButton } from "@/neynar-farcaster-sdk/mini";
 
 function formatScore(score: number): string {
-  return score.toFixed(2).replace(".", ",");
+  const safeScore = Number.isFinite(score) ? Math.min(Math.max(score, 0), 1) : 0;
+  return safeScore.toFixed(2).replace(".", ",");
+}
+
+function readNumber(value: unknown, fallback = 0): number {
+  const n = Number(value ?? fallback);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function normalizeScore(value: unknown): number {
+  const n = readNumber(value, 0);
+  if (n <= 1) return Math.max(0, Math.min(1, Math.round(n * 1000) / 1000));
+  return Math.max(0, Math.min(1, Math.round((n / 1_000_000) * 1000) / 1000));
+}
+
+function coerceScoreData(payload: unknown, requestedFid: number): NeynarScoreData {
+  if (!payload || typeof payload !== "object") {
+    throw new Error("Invalid score response.");
+  }
+  const record = payload as Record<string, unknown>;
+  const fid = Math.trunc(readNumber(record.fid, requestedFid));
+  const username = String(record.username ?? `fid:${fid || requestedFid}`);
+  const displayName = String(record.displayName ?? record.display_name ?? username);
+  const score = normalizeScore(record.score);
+  const verifiedAddresses = Array.isArray(record.verifiedAddresses)
+    ? record.verifiedAddresses.filter((item): item is string => typeof item === "string")
+    : [];
+
+  return {
+    fid: fid > 0 ? fid : requestedFid,
+    username,
+    displayName,
+    pfpUrl: String(record.pfpUrl ?? record.pfp_url ?? ""),
+    score,
+    scoreLabel: String(record.scoreLabel ?? record.score_label ?? "Newcomer"),
+    followerCount: Math.max(0, Math.trunc(readNumber(record.followerCount ?? record.follower_count, 0))),
+    followingCount: Math.max(0, Math.trunc(readNumber(record.followingCount ?? record.following_count, 0))),
+    verifiedAddresses,
+    activeStatus: String(record.activeStatus ?? record.active_status ?? "inactive"),
+  };
 }
 
 const previewScoreData: NeynarScoreData = {
@@ -39,14 +78,14 @@ export function ScoreTab({
     setError(null);
     setIsPending(true);
     try {
-      const res = await fetch(`/api/score?fid=${fid}`);
+      const res = await fetch(`/api/score?fid=${fid}`, { cache: "no-store" });
       const payload = await res.json();
 
       if (!res.ok) {
         setScoreData(null);
         setError(payload?.error ?? `Score for FID ${fid} not found.`);
       } else {
-        setScoreData(payload as NeynarScoreData);
+        setScoreData(coerceScoreData(payload, fid));
       }
     } catch {
       setScoreData(null);

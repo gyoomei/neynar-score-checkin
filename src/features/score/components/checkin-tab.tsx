@@ -4,10 +4,13 @@ import { useState, useEffect } from "react";
 import { useFarcasterUser } from "@/neynar-farcaster-sdk/mini";
 import {
   useAccount,
+  useChainId,
   useConnect,
   useSendTransaction,
+  useSwitchChain,
   useWaitForTransactionReceipt,
 } from "wagmi";
+import { base } from "viem/chains";
 import { NeynarWagmiProvider } from "@/neynar-web-sdk/blockchain";
 import { CheckInStatus } from "@/features/score/types";
 
@@ -83,10 +86,13 @@ function formatTimeUntilNext(lastCheckIn: string): string {
 function CheckInInner() {
   const { data: user } = useFarcasterUser();
   const { address, isConnected } = useAccount();
+  const chainId = useChainId();
   const { connect, connectors } = useConnect();
+  const { switchChainAsync, isPending: isSwitchingChain } = useSwitchChain();
   const [status, setStatus] = useState<CheckInStatus | null>(null);
   const [timeLabel, setTimeLabel] = useState("");
   const [justDone, setJustDone] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isConnected || connectors.length === 0) return;
@@ -133,15 +139,29 @@ function CheckInInner() {
     setJustDone(true);
   }, [isConfirmed, user?.fid]);
 
-  function handleCheckIn() {
+  async function handleCheckIn() {
     reset();
     setJustDone(false);
+    setLocalError(null);
     if (!address) return;
-    sendTransaction({
-      to: address,
-      value: 0n,
-      data: GM_DATA,
-    });
+    try {
+      if (chainId !== base.id) {
+        await switchChainAsync({ chainId: base.id });
+      }
+      sendTransaction({
+        to: address,
+        value: 0n,
+        data: GM_DATA,
+        chainId: base.id,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (message.toLowerCase().includes("reject") || message.toLowerCase().includes("denied")) {
+        setLocalError("Network switch was rejected. Please switch to Base and try again.");
+      } else {
+        setLocalError("Could not switch to Base. Please open wallet network settings and choose Base.");
+      }
+    }
   }
 
   if (!user) {
@@ -234,6 +254,11 @@ function CheckInInner() {
       )}
 
       {/* Error */}
+      {localError && (
+        <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3 text-xs text-red-600">
+          {localError}
+        </div>
+      )}
       {sendError &&
         !sendError.message.includes("rejected") &&
         !sendError.message.includes("denied") && (
@@ -253,10 +278,15 @@ function CheckInInner() {
       ) : (
         <button
           onClick={handleCheckIn}
-          disabled={!isConnected || isSending || isConfirming || justDone}
+          disabled={!isConnected || isSwitchingChain || isSending || isConfirming || justDone}
           className="w-full py-4 rounded-2xl bg-blue-600 text-white font-bold text-base active:scale-95 transition-all disabled:opacity-60 shadow-md shadow-blue-200 flex items-center justify-center gap-2"
         >
-          {isSending ? (
+          {isSwitchingChain ? (
+            <>
+              <span className="inline-block w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              Switching to Base...
+            </>
+          ) : isSending ? (
             <>
               <span className="inline-block w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
               Confirm in wallet...

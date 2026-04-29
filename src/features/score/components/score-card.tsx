@@ -5,13 +5,21 @@ import { NeynarScoreData } from "@/features/score/types";
 
 // Format score 0-1 as comma decimal e.g. "0,45"
 function formatScore(score: number): string {
-  return score.toFixed(2).replace(".", ",");
+  return safeScore(score).toFixed(2).replace(".", ",");
+}
+
+function safeScore(score: number): number {
+  return Number.isFinite(score) ? Math.min(Math.max(score, 0), 1) : 0;
+}
+
+function safeCount(value: number): number {
+  return Number.isFinite(value) ? Math.max(0, Math.trunc(value)) : 0;
 }
 
 function ScoreRing({ score }: { score: number }) {
   const radius = 54;
   const circumference = 2 * Math.PI * radius;
-  const targetProgress = Math.min(Math.max(score, 0), 1);
+  const targetProgress = safeScore(score);
 
   // Start at 0 (full offset = empty), animate to target on mount
   const [progress, setProgress] = useState(0);
@@ -57,13 +65,13 @@ function ScoreRing({ score }: { score: number }) {
   const strokeDashoffset = circumference * (1 - progress);
 
   const color =
-    score >= 0.9
+    targetProgress >= 0.9
       ? "#2563EB"
-      : score >= 0.7
+      : targetProgress >= 0.7
         ? "#3B82F6"
-        : score >= 0.5
+        : targetProgress >= 0.5
           ? "#60A5FA"
-          : score >= 0.3
+          : targetProgress >= 0.3
             ? "#93C5FD"
             : "#BFDBFE";
 
@@ -139,8 +147,13 @@ export function ScoreCard({
   data: NeynarScoreData;
   isPreview?: boolean;
 }) {
-  const formatNum = (n: number) =>
-    n >= 1000 ? `${(n / 1000).toFixed(1)}K` : n.toString();
+  const formatNum = (n: number) => {
+    const safe = safeCount(n);
+    return safe >= 1000 ? `${(safe / 1000).toFixed(1)}K` : safe.toString();
+  };
+  const verifiedWalletCount = Array.isArray(data.verifiedAddresses)
+    ? data.verifiedAddresses.length
+    : 0;
 
   return (
     <div className={`bg-white rounded-2xl shadow-sm border border-blue-100 p-5 space-y-4 ${isPreview ? "opacity-95" : ""}`}>
@@ -171,7 +184,7 @@ export function ScoreCard({
 
       {/* Score Ring */}
       <div className="flex justify-center py-2">
-        <ScoreRing score={data.score} />
+        <ScoreRing score={safeScore(data.score)} />
       </div>
 
       {/* Stats */}
@@ -180,7 +193,7 @@ export function ScoreCard({
         <StatBadge label="Following" value={formatNum(data.followingCount)} />
         <StatBadge
           label="Wallets"
-          value={data.verifiedAddresses.length.toString()}
+          value={verifiedWalletCount.toString()}
         />
       </div>
 

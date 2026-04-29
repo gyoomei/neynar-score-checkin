@@ -32,12 +32,30 @@ function labelForScore(score: number): string {
   return "Newcomer";
 }
 
-function normalizeScore(raw: bigint | number): number {
-  const value = Number(raw);
+function normalizeScore(raw: bigint | number | string | null | undefined): number {
+  const value = Number(raw ?? 0);
   if (!Number.isFinite(value)) return 0;
+
+  // Neynar API returns 0..1 decimals, while the Base score contract returns
+  // 0..1_000_000 integers. Normalize both shapes into the UI's 0..1 range.
+  if (value <= 1) {
+    return Math.max(0, Math.min(1, Math.round(value * 1000) / 1000));
+  }
+
   return Math.max(
     0,
     Math.min(1, Math.round((value / 1_000_000) * 1000) / 1000),
+  );
+}
+
+function pickNeynarScore(user: Record<string, unknown>): number {
+  const experimental = user.experimental as Record<string, unknown> | undefined;
+  return normalizeScore(
+    (experimental?.neynar_user_score ??
+      experimental?.neynarUserScore ??
+      user.neynar_user_score ??
+      user.neynarUserScore ??
+      user.score) as bigint | number | string | null | undefined,
   );
 }
 
@@ -100,20 +118,28 @@ export async function fetchNeynarScore(
     const user = data.users?.[0];
     if (!user) return fetchOnchainScore(fid);
 
-    const rawScore: number = user.experimental?.neynar_user_score ?? 0;
-    const score = Math.max(0, Math.min(1, Math.round(rawScore * 1000) / 1000));
+    const userRecord = user as Record<string, unknown>;
+    const verifiedAddresses = userRecord.verified_addresses as
+      | { eth_addresses?: string[] }
+      | undefined;
+    const score = pickNeynarScore(userRecord);
 
     return {
-      fid: user.fid,
-      username: user.username,
-      displayName: user.display_name ?? user.username,
-      pfpUrl: user.pfp_url ?? "",
+      fid: Number(userRecord.fid) || fid,
+      username: String(userRecord.username ?? `fid:${fid}`),
+      displayName: String(
+        userRecord.display_name ??
+          userRecord.displayName ??
+          userRecord.username ??
+          `FID ${fid}`,
+      ),
+      pfpUrl: String(userRecord.pfp_url ?? userRecord.pfpUrl ?? ""),
       score,
       scoreLabel: labelForScore(score),
-      followerCount: user.follower_count ?? 0,
-      followingCount: user.following_count ?? 0,
-      verifiedAddresses: user.verified_addresses?.eth_addresses ?? [],
-      activeStatus: user.active_status ?? "active",
+      followerCount: Number(userRecord.follower_count ?? userRecord.followerCount ?? 0),
+      followingCount: Number(userRecord.following_count ?? userRecord.followingCount ?? 0),
+      verifiedAddresses: verifiedAddresses?.eth_addresses ?? [],
+      activeStatus: String(userRecord.active_status ?? userRecord.activeStatus ?? "active"),
     };
   } catch {
     return fetchOnchainScore(fid);
