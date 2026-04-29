@@ -1,1 +1,63 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><defs><radialGradient id="r" cx="70%" cy="35%" r="70%"><stop stop-color="#2563eb" stop-opacity=".55"/><stop offset=".45" stop-color="#111827" stop-opacity="0"/></radialGradient><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#22d3ee"/><stop offset=".55" stop-color="#6366f1"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs><rect width="1200" height="800" fill="#07111f"/><rect width="1200" height="800" fill="url(#r)"/><g opacity=".16" stroke="#93c5fd"><path d="M0 120h1200M0 240h1200M0 360h1200M0 480h1200M0 600h1200M0 720h1200M120 0v800M240 0v800M360 0v800M480 0v800M600 0v800M720 0v800M840 0v800M960 0v800M1080 0v800"/></g><text x="88" y="142" fill="#67e8f9" font-family="Inter,Arial" font-size="32" font-weight="800" letter-spacing="8">FARCASTER MINI APP</text><text x="88" y="276" fill="#ffffff" font-family="Inter,Arial" font-size="86" font-weight="900">Neynar Score</text><text x="88" y="372" fill="#ffffff" font-family="Inter,Arial" font-size="86" font-weight="900">Check-in</text><text x="92" y="452" fill="#bfdbfe" font-family="Inter,Arial" font-size="32" font-weight="600">Check any FID's trust score on Base, then check in with an ultra-low fee.</text><rect x="88" y="548" width="380" height="82" rx="28" fill="url(#g)"/><text x="134" y="601" fill="#fff" font-family="Inter,Arial" font-size="31" font-weight="900">Open Mini App</text><circle cx="908" cy="372" r="168" fill="url(#g)" opacity=".26"/><path d="M784 393c53 71 111 107 176 107 51 0 95-22 132-64" fill="none" stroke="#67e8f9" stroke-width="38" stroke-linecap="round"/><path d="M796 309h137m-69-69v137m132-87h91" stroke="#fff" stroke-width="37" stroke-linecap="round"/><circle cx="1088" cy="392" r="37" fill="#a7f3d0"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <defs>
+    <radialGradient id="glowA" cx="18%" cy="18%" r="70%">
+      <stop offset="0" stop-color="#7170ff" stop-opacity="0.42"/>
+      <stop offset="0.48" stop-color="#111827" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="82%" cy="38%" r="58%">
+      <stop offset="0" stop-color="#22d3ee" stop-opacity="0.38"/>
+      <stop offset="0.56" stop-color="#07111f" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#22d3ee"/>
+      <stop offset="0.52" stop-color="#6366f1"/>
+      <stop offset="1" stop-color="#a855f7"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#172033" stop-opacity="0.92"/>
+      <stop offset="1" stop-color="#0b1220" stop-opacity="0.88"/>
+    </linearGradient>
+    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="28" stdDeviation="28" flood-color="#000000" flood-opacity="0.38"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="800" fill="#07111f"/>
+  <rect width="1200" height="800" fill="url(#glowA)"/>
+  <rect width="1200" height="800" fill="url(#glowB)"/>
+
+  <g opacity="0.10" stroke="#93c5fd" stroke-width="1">
+    <path d="M0 100h1200M0 200h1200M0 300h1200M0 400h1200M0 500h1200M0 600h1200M0 700h1200M100 0v800M200 0v800M300 0v800M400 0v800M500 0v800M600 0v800M700 0v800M800 0v800M900 0v800M1000 0v800M1100 0v800"/>
+  </g>
+
+  <!-- Left text block: safe area ends at x=650, logo starts at x=760 -->
+  <g font-family="Inter, Arial, sans-serif">
+    <rect x="86" y="88" width="298" height="50" rx="25" fill="rgba(34,211,238,0.12)" stroke="rgba(103,232,249,0.34)"/>
+    <text x="112" y="121" fill="#67e8f9" font-size="21" font-weight="800" letter-spacing="4">FARCASTER MINI APP</text>
+
+    <text x="86" y="265" fill="#ffffff" font-size="88" font-weight="900" letter-spacing="-4">Neynar</text>
+    <text x="86" y="358" fill="#ffffff" font-size="88" font-weight="900" letter-spacing="-4">Score</text>
+    <text x="86" y="448" fill="#dbeafe" font-size="50" font-weight="800" letter-spacing="-1.5">Check-in</text>
+
+    <text x="90" y="515" fill="#aebbd0" font-size="28" font-weight="500">Check Farcaster trust score.</text>
+    <text x="90" y="553" fill="#aebbd0" font-size="28" font-weight="500">Pay a tiny Base check-in fee.</text>
+
+    <rect x="86" y="626" width="250" height="70" rx="24" fill="url(#brand)"/>
+    <text x="124" y="671" fill="#ffffff" font-size="26" font-weight="900">Check Score</text>
+  </g>
+
+  <!-- Right visual card, separated from headline -->
+  <g filter="url(#softShadow)">
+    <rect x="748" y="148" width="342" height="468" rx="54" fill="url(#card)" stroke="rgba(255,255,255,0.12)"/>
+    <circle cx="919" cy="334" r="132" fill="url(#brand)" opacity="0.24"/>
+    <circle cx="919" cy="334" r="98" fill="#0b1220" stroke="rgba(255,255,255,0.10)" stroke-width="2"/>
+    <path d="M836 358c35 49 76 73 121 73 35 0 66-14 92-42" fill="none" stroke="#67e8f9" stroke-width="28" stroke-linecap="round"/>
+    <path d="M848 304h82m-41-41v82m92-58h60" stroke="#ffffff" stroke-width="27" stroke-linecap="round"/>
+    <circle cx="1040" cy="358" r="24" fill="#a7f3d0"/>
+
+    <rect x="788" y="506" width="262" height="64" rx="22" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.10)"/>
+    <text x="820" y="546" fill="#f7f8f8" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="800">Base · Onchain</text>
+  </g>
+
+  <text x="86" y="750" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600">gyoomei.github.io/neynar-score-checkin</text>
+</svg>
