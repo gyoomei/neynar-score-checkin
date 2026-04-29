@@ -225,7 +225,8 @@ async function checkScoreByFid() {
 
   try {
     state.score = await readScoreFromNeynarApi(fid)
-    setLoading(false, `Neynar API score loaded for FID ${fid}`)
+    const sourceLabel = state.score.source === 'neynar-api' ? 'Neynar API' : 'Onchain'
+    setLoading(false, `${sourceLabel} score loaded for FID ${fid}`)
     return
   } catch (err) {
     errors.push(`Neynar API: ${err?.message || 'unavailable'}`)
