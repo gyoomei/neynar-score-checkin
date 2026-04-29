@@ -68,7 +68,7 @@ function renderScorePanel(label, tone) {
 
       <div class="score-meta modern">
         <span class="badge ${tone}">${label}</span>
-        <span>Raw ${state.score?.raw ?? '—'} / 1,000,000</span>
+        <span>${state.score?.source === 'neynar-api' ? 'Neynar API' : 'Onchain Base'} · Raw ${state.score?.raw ?? '—'} / 1,000,000</span>
       </div>
 
       <div class="form-card score-only">
@@ -126,32 +126,40 @@ function renderCheckinPanel() {
 
 function render() {
   const [label, tone] = badge(state.score)
-  const userName = state.context?.user?.displayName || state.context?.user?.username || 'Browser preview'
-  const userMeta = state.context?.user?.fid ? `FID ${state.context.user.fid}` : 'Open in Farcaster for auto FID'
+  const scoreProfile = state.score?.profile || null
+  const userName = scoreProfile?.displayName || state.context?.user?.displayName || state.context?.user?.username || 'Farcaster user'
+  const userMeta = scoreProfile?.username ? `@${scoreProfile.username} · FID ${scoreProfile.fid}` : (state.context?.user?.fid ? `FID ${state.context.user.fid}` : 'Open in Farcaster for auto FID')
+  const avatarUrl = scoreProfile?.pfpUrl || state.context?.user?.pfpUrl || ''
   qs('#app').innerHTML = `
     <main class="app-shell">
       <header class="mini-header">
-        <div class="brand-dot">N</div>
+        <div class="brand-dot"><img src="/neynar-app-logo.png" alt="" /></div>
         <div>
           <h1>Neynar Score</h1>
-          <p>Trust score & Base check-in</p>
+          <p>Farcaster trust score</p>
         </div>
         <button class="icon-btn" id="shareBtn" aria-label="Share">↗</button>
       </header>
 
       <section class="profile-card">
-        <div class="avatar">${state.context?.user?.pfpUrl ? `<img src="${state.context.user.pfpUrl}" alt=""/>` : '⌁'}</div>
+        <div class="avatar">${avatarUrl ? `<img src="${avatarUrl}" alt=""/>` : '⌁'}</div>
         <div class="profile-copy">
           <span>${userName}</span>
           <b>${userMeta}</b>
         </div>
-        <div class="network-pill">Base</div>
+        <div class="network-pill">${state.score?.source === 'neynar-api' ? 'API' : 'Base'}</div>
       </section>
 
       <nav class="tabbar" aria-label="Primary">
         <button class="tab ${state.activeTab === 'score' ? 'active' : ''}" id="tabScore"><span>⌕</span>Score</button>
         <button class="tab ${state.activeTab === 'checkin' ? 'active' : ''}" id="tabCheckin"><span>✓</span>Check-in</button>
       </nav>
+
+      <section class="hero-card">
+        <span class="eyebrow">Neynar · Farcaster · Base</span>
+        <h2>Check trust. Prove activity.</h2>
+        <p>Score lookup and lightweight Base check-in in one clean Mini App flow.</p>
+      </section>
 
       <section class="content-card">
         ${state.activeTab === 'score' ? renderScorePanel(label, tone) : renderCheckinPanel()}
