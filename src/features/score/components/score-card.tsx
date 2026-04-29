@@ -19,24 +19,28 @@ function ScoreRing({ score }: { score: number }) {
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
-    // Kick off on next frame so CSS transition fires
+    // Kick off on next frame so CSS transition fires on mount and updates
     const raf = requestAnimationFrame(() => {
       setProgress(targetProgress);
     });
 
-    // Count-up animation for the number (~900ms, matches ring)
+    // Count-up / count-down animation for the number (~900ms, matches ring)
     const duration = 900;
     const start = performance.now();
+    const startDisplayScore = displayScore;
     function step(now: number) {
       const elapsed = now - start;
       const t = Math.min(elapsed / duration, 1);
       // ease-out cubic
       const eased = 1 - Math.pow(1 - t, 3);
-      setDisplayScore(eased * targetProgress);
+      setDisplayScore(
+        startDisplayScore + (targetProgress - startDisplayScore) * eased,
+      );
       if (t < 1) {
         rafRef.current = requestAnimationFrame(step);
       } else {
         setDisplayScore(targetProgress);
+        setProgress(targetProgress);
       }
     }
     rafRef.current = requestAnimationFrame(step);
@@ -45,8 +49,10 @@ function ScoreRing({ score }: { score: number }) {
       cancelAnimationFrame(raf);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
+  // displayScore is intentionally omitted so the animation restarts only when
+  // the incoming score changes, not on every animation frame.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [targetProgress]);
 
   const strokeDashoffset = circumference * (1 - progress);
 
@@ -126,12 +132,18 @@ function ScoreLevelBadge({ label }: { label: string }) {
   );
 }
 
-export function ScoreCard({ data }: { data: NeynarScoreData }) {
+export function ScoreCard({
+  data,
+  isPreview = false,
+}: {
+  data: NeynarScoreData;
+  isPreview?: boolean;
+}) {
   const formatNum = (n: number) =>
     n >= 1000 ? `${(n / 1000).toFixed(1)}K` : n.toString();
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-blue-100 p-5 space-y-4">
+    <div className={`bg-white rounded-2xl shadow-sm border border-blue-100 p-5 space-y-4 ${isPreview ? "opacity-95" : ""}`}>
       {/* Profile */}
       <div className="flex items-center gap-3">
         {data.pfpUrl ? (
