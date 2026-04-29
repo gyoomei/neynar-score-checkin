@@ -1,0 +1,11 @@
+{
+  "miniapp": {
+    "version": "1",
+    "name": "Neynar Score Check-in",
+    "iconUrl": "https://gyoomei.github.io/neynar-score-checkin/icon.svg",
+    "homeUrl": "https://gyoomei.github.io/neynar-score-checkin/",
+    "imageUrl": "https://gyoomei.github.io/neynar-score-checkin/og.svg",
+    "splashImageUrl": "https://gyoomei.github.io/neynar-score-checkin/icon.svg",
+    "splashBackgroundColor": "#08111f"
+  }
+}
