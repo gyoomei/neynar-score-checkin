@@ -25,7 +25,8 @@ const state = {
   feeEth: DEFAULT_FEE_ETH,
   loading: false,
   status: 'Ready',
-  errors: []
+  errors: [],
+  activeTab: 'score'
 }
 
 window.__appErrors = []
@@ -52,88 +53,129 @@ function saveHistory(item) {
   localStorage.setItem('checkin-history', JSON.stringify(next))
 }
 
-function render() {
-  const [label, tone] = badge(state.score)
-  qs('#app').innerHTML = `
-    <main class="shell">
-      <section class="hero card">
-        <div class="topline">
-          <span class="pill">Base · Farcaster · Neynar</span>
-          <button class="ghost" id="shareBtn">Share</button>
+function renderScorePanel(label, tone) {
+  return `
+    <section class="panel-view active" data-view="score">
+      <div class="score-orb">
+        <div class="score-ring" style="--p:${pct(state.score)}">
+          <span>${state.score ? (state.score.normalized || 0).toFixed(3) : '—'}</span>
+          <small>Neynar score</small>
         </div>
-        <h1>Neynar Score Check-in</h1>
-        <p class="sub">Check any Farcaster user's Neynar quality score directly from Base, then check in with an ultra-low onchain fee.</p>
-        <div class="userbar">
-          <div class="avatar">${state.context?.user?.pfpUrl ? `<img src="${state.context.user.pfpUrl}" alt=""/>` : '⌁'}</div>
-          <div>
-            <strong>${state.context?.user?.displayName || state.context?.user?.username || 'Browser preview'}</strong>
-            <span>${state.context?.user?.fid ? `FID ${state.context.user.fid}` : 'Open in Farcaster for auto FID'}</span>
-          </div>
+      </div>
+
+      <div class="score-meta modern">
+        <span class="badge ${tone}">${label}</span>
+        <span>Raw ${state.score?.raw ?? '—'} / 1,000,000</span>
+      </div>
+
+      <div class="form-card">
+        <label>Farcaster FID</label>
+        <div class="input-row">
+          <input id="fidInput" inputmode="numeric" value="${state.fid}" placeholder="e.g. 3" />
+          <button id="scoreBtn">${state.loading ? 'Checking…' : 'Check'}</button>
         </div>
-      </section>
-
-      <section class="grid">
-        <div class="card score-card">
-          <div class="section-title">Score checker</div>
-          <label>Farcaster FID</label>
-          <div class="input-row">
-            <input id="fidInput" inputmode="numeric" value="${state.fid}" placeholder="e.g. 3" />
-            <button id="scoreBtn">${state.loading ? 'Checking…' : 'Check'}</button>
-          </div>
-          <label>Or wallet address</label>
-          <div class="input-row">
-            <input id="addrInput" value="${state.address}" placeholder="0x..." />
-            <button id="walletScoreBtn">By wallet</button>
-          </div>
-
-          <div class="meter-wrap">
-            <div class="score-big">${state.score ? (state.score.normalized || 0).toFixed(3) : '—'}</div>
-            <div class="meter"><span style="width:${pct(state.score)}%"></span></div>
-            <div class="score-meta">
-              <span class="badge ${tone}">${label}</span>
-              <span>Raw: ${state.score?.raw ?? '—'} / 1,000,000</span>
-            </div>
-          </div>
-          <p class="note">No API key needed: this reads Neynar's onchain score reader contract on Base.</p>
+        <label>Wallet address</label>
+        <div class="input-row">
+          <input id="addrInput" value="${state.address}" placeholder="0x..." />
+          <button id="walletScoreBtn" class="secondary">By wallet</button>
         </div>
+      </div>
 
-        <div class="card checkin-card">
-          <div class="section-title">Ultra-low fee check-in</div>
-          <div class="wallet-box">
-            <span>Wallet</span>
-            <b>${short(state.wallet)}</b>
-          </div>
-          <label>Receiver address</label>
-          <input id="recipientInput" value="${state.recipient}" placeholder="0x receiver for check-in fee" />
-          <label>Fee ETH on Base</label>
-          <input id="feeInput" value="${state.feeEth}" inputmode="decimal" />
-          <div class="actions">
-            <button id="connectBtn" class="secondary">Connect</button>
-            <button id="checkinBtn">Check in</button>
-          </div>
-          <p class="note">Default fee is ${DEFAULT_FEE_ETH} ETH. Use Base mainnet for very low gas. Set <code>VITE_CHECKIN_RECIPIENT</code> before production deploy.</p>
+      <div class="info-strip">
+        <b>No API key</b>
+        <span>Reads Neynar's score reader contract directly on Base.</span>
+      </div>
+    </section>`
+}
+
+function renderCheckinPanel() {
+  return `
+    <section class="panel-view active" data-view="checkin">
+      <div class="checkin-hero-mini">
+        <div>
+          <span class="eyebrow">Ultra-low fee</span>
+          <h2>Check in on Base</h2>
+          <p>Send a tiny onchain check-in fee and keep the tx in your local history.</p>
         </div>
-      </section>
+        <div class="fee-chip">${state.feeEth || DEFAULT_FEE_ETH} ETH</div>
+      </div>
 
-      <section class="card history-card">
-        <div class="section-title">Recent check-ins</div>
+      <div class="wallet-card">
+        <span>Wallet</span>
+        <b>${short(state.wallet)}</b>
+      </div>
+
+      <div class="form-card">
+        <label>Receiver address</label>
+        <input id="recipientInput" value="${state.recipient}" placeholder="0x receiver for check-in fee" />
+        <label>Fee ETH on Base</label>
+        <input id="feeInput" value="${state.feeEth}" inputmode="decimal" />
+        <div class="actions sticky-actions">
+          <button id="connectBtn" class="secondary">${state.wallet ? 'Wallet connected' : 'Connect wallet'}</button>
+          <button id="checkinBtn">${state.wallet ? 'Check in' : 'Connect & check in'}</button>
+        </div>
+      </div>
+
+      <div class="history-card compact">
+        <div class="section-title row-title"><span>Recent check-ins</span><small>${history().length} tx</small></div>
         <div class="history-list">
           ${history().length ? history().map(item => `<a class="tx" href="https://basescan.org/tx/${item.hash}" target="_blank"><span>${new Date(item.time).toLocaleString()}</span><b>${short(item.hash)}</b></a>`).join('') : '<p class="empty">No check-ins yet.</p>'}
         </div>
+      </div>
+    </section>`
+}
+
+function render() {
+  const [label, tone] = badge(state.score)
+  const userName = state.context?.user?.displayName || state.context?.user?.username || 'Browser preview'
+  const userMeta = state.context?.user?.fid ? `FID ${state.context.user.fid}` : 'Open in Farcaster for auto FID'
+  qs('#app').innerHTML = `
+    <main class="app-shell">
+      <header class="mini-header">
+        <div class="brand-dot">N</div>
+        <div>
+          <h1>Neynar Score</h1>
+          <p>Trust score & Base check-in</p>
+        </div>
+        <button class="icon-btn" id="shareBtn" aria-label="Share">↗</button>
+      </header>
+
+      <section class="profile-card">
+        <div class="avatar">${state.context?.user?.pfpUrl ? `<img src="${state.context.user.pfpUrl}" alt=""/>` : '⌁'}</div>
+        <div class="profile-copy">
+          <span>${userName}</span>
+          <b>${userMeta}</b>
+        </div>
+        <div class="network-pill">Base</div>
       </section>
 
-      <div class="toast">${state.status}</div>
+      <nav class="tabbar" aria-label="Primary">
+        <button class="tab ${state.activeTab === 'score' ? 'active' : ''}" id="tabScore"><span>⌕</span>Score</button>
+        <button class="tab ${state.activeTab === 'checkin' ? 'active' : ''}" id="tabCheckin"><span>✓</span>Check-in</button>
+      </nav>
+
+      <section class="content-card">
+        ${state.activeTab === 'score' ? renderScorePanel(label, tone) : renderCheckinPanel()}
+      </section>
+
+      ${state.status && state.status !== 'Ready' ? `<div class="toast">${state.status}</div>` : ''}
     </main>`
 
-  qs('#fidInput').addEventListener('input', (e) => { state.fid = e.target.value.trim() })
-  qs('#addrInput').addEventListener('input', (e) => { state.address = e.target.value.trim() })
-  qs('#recipientInput').addEventListener('input', (e) => { state.recipient = e.target.value.trim() })
-  qs('#feeInput').addEventListener('input', (e) => { state.feeEth = e.target.value.trim() })
-  qs('#scoreBtn').addEventListener('click', checkScoreByFid)
-  qs('#walletScoreBtn').addEventListener('click', checkScoreByAddress)
-  qs('#connectBtn').addEventListener('click', connectWallet)
-  qs('#checkinBtn').addEventListener('click', checkIn)
+  qs('#tabScore').addEventListener('click', () => { state.activeTab = 'score'; render() })
+  qs('#tabCheckin').addEventListener('click', () => { state.activeTab = 'checkin'; render() })
   qs('#shareBtn').addEventListener('click', shareApp)
+
+  if (state.activeTab === 'score') {
+    qs('#fidInput').addEventListener('input', (e) => { state.fid = e.target.value.trim() })
+    qs('#addrInput').addEventListener('input', (e) => { state.address = e.target.value.trim() })
+    qs('#scoreBtn').addEventListener('click', checkScoreByFid)
+    qs('#walletScoreBtn').addEventListener('click', checkScoreByAddress)
+  } else {
+    qs('#recipientInput').addEventListener('input', (e) => { state.recipient = e.target.value.trim() })
+    qs('#feeInput').addEventListener('input', (e) => { state.feeEth = e.target.value.trim() })
+    qs('#connectBtn').addEventListener('click', connectWallet)
+    qs('#checkinBtn').addEventListener('click', checkIn)
+  }
 }
 
 function setStatus(message) { state.status = message; render() }
