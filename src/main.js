@@ -11,8 +11,7 @@ const SCORE_RPC_URLS = Array.from(new Set([
   'https://mainnet.base.org',
   'https://base.llamarpc.com'
 ].filter(Boolean)))
-const DEFAULT_FEE_ETH = import.meta.env.VITE_CHECKIN_FEE_ETH || '0.000001'
-const DEFAULT_RECIPIENT = import.meta.env.VITE_CHECKIN_RECIPIENT || ''
+const GM_DATA = '0x676d'
 const APP_URL = import.meta.env.VITE_APP_URL || window.location.origin + window.location.pathname
 
 const ABI = [
@@ -24,8 +23,6 @@ const state = {
   fid: '',
   score: null,
   wallet: '',
-  recipient: DEFAULT_RECIPIENT,
-  feeEth: DEFAULT_FEE_ETH,
   loading: false,
   status: 'Ready',
   errors: [],
@@ -92,11 +89,11 @@ function renderCheckinPanel() {
     <section class="panel-view active" data-view="checkin">
       <div class="checkin-hero-mini">
         <div>
-          <span class="eyebrow">Ultra-low fee</span>
-          <h2>Check in on Base</h2>
-          <p>Send a tiny onchain check-in fee and keep the tx in your local history.</p>
+          <span class="eyebrow">GM onchain</span>
+          <h2>GM on Base</h2>
+          <p>Send a zero-value GM transaction to yourself on Base. No receiver field, just a pure onchain proof.</p>
         </div>
-        <div class="fee-chip">${state.feeEth || DEFAULT_FEE_ETH} ETH</div>
+        <div class="fee-chip">Gas only</div>
       </div>
 
       <div class="wallet-card">
@@ -104,21 +101,22 @@ function renderCheckinPanel() {
         <b>${short(state.wallet)}</b>
       </div>
 
-      <div class="form-card">
-        <label>Receiver address</label>
-        <input id="recipientInput" value="${state.recipient}" placeholder="0x receiver for check-in fee" />
-        <label>Fee ETH on Base</label>
-        <input id="feeInput" value="${state.feeEth}" inputmode="decimal" />
+      <div class="form-card gm-card">
+        <div class="gm-preview">
+          <span>Message</span>
+          <b>gm</b>
+          <small>Transaction data: ${GM_DATA}</small>
+        </div>
         <div class="actions sticky-actions">
           <button id="connectBtn" class="secondary">${state.wallet ? 'Wallet connected' : 'Connect wallet'}</button>
-          <button id="checkinBtn">${state.wallet ? 'Check in' : 'Connect & check in'}</button>
+          <button id="checkinBtn">${state.wallet ? 'Send GM' : 'Connect & GM'}</button>
         </div>
       </div>
 
       <div class="history-card compact">
-        <div class="section-title row-title"><span>Recent check-ins</span><small>${history().length} tx</small></div>
+        <div class="section-title row-title"><span>Recent GM tx</span><small>${history().length} tx</small></div>
         <div class="history-list">
-          ${history().length ? history().map(item => `<a class="tx" href="https://basescan.org/tx/${item.hash}" target="_blank"><span>${new Date(item.time).toLocaleString()}</span><b>${short(item.hash)}</b></a>`).join('') : '<p class="empty">No check-ins yet.</p>'}
+          ${history().length ? history().map(item => `<a class="tx" href="https://basescan.org/tx/${item.hash}" target="_blank"><span>${new Date(item.time).toLocaleString()}</span><b>${short(item.hash)}</b></a>`).join('') : '<p class="empty">No GM transactions yet.</p>'}
         </div>
       </div>
     </section>`
@@ -168,8 +166,8 @@ function render() {
       ${state.status && state.status !== 'Ready' ? `<div class="toast">${state.status}</div>` : ''}
     </main>`
 
-  qs('#tabScore').addEventListener('click', () => { state.activeTab = 'score'; render() })
-  qs('#tabCheckin').addEventListener('click', () => { state.activeTab = 'checkin'; render() })
+  qs('#tabScore').addEventListener('click', () => { state.activeTab = 'score'; state.status = 'Ready'; render() })
+  qs('#tabCheckin').addEventListener('click', () => { state.activeTab = 'checkin'; state.status = 'Ready'; render(); autoConnectWallet() })
   qs('#shareBtn').addEventListener('click', shareApp)
 
   if (state.activeTab === 'score') {
@@ -177,15 +175,44 @@ function render() {
     qs('#fidInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') checkScoreByFid() })
     qs('#scoreBtn').addEventListener('click', checkScoreByFid)
   } else {
-    qs('#recipientInput').addEventListener('input', (e) => { state.recipient = e.target.value.trim() })
-    qs('#feeInput').addEventListener('input', (e) => { state.feeEth = e.target.value.trim() })
     qs('#connectBtn').addEventListener('click', connectWallet)
     qs('#checkinBtn').addEventListener('click', checkIn)
   }
 }
 
-function setStatus(message) { state.status = message; render() }
-function setLoading(value, message) { state.loading = value; if (message) state.status = message; render() }
+function renderStatusOnly() {
+  const existing = qs('.toast')
+  if (!state.status || state.status === 'Ready') {
+    existing?.remove()
+    return
+  }
+  if (existing) {
+    existing.textContent = state.status
+    return
+  }
+  const app = qs('.app-shell')
+  if (!app) return render()
+  const toast = document.createElement('div')
+  toast.className = 'toast'
+  toast.textContent = state.status
+  app.appendChild(toast)
+}
+
+function setStatus(message) {
+  state.status = message
+  renderStatusOnly()
+}
+
+function setLoading(value, message) {
+  state.loading = value
+  if (message) state.status = message
+  const btn = qs('#scoreBtn')
+  if (btn) {
+    btn.disabled = value
+    btn.textContent = value ? 'Checking…' : 'Check score'
+  }
+  renderStatusOnly()
+}
 
 async function readScoreFromRpc(fid, rpcUrl) {
   const provider = new ethers.JsonRpcProvider(rpcUrl, BASE_CHAIN_ID)
@@ -226,7 +253,9 @@ async function checkScoreByFid() {
   try {
     state.score = await readScoreFromNeynarApi(fid)
     const sourceLabel = state.score.source === 'neynar-api' ? 'Neynar API' : 'Onchain'
-    setLoading(false, `${sourceLabel} score loaded for FID ${fid}`)
+    state.loading = false
+    state.status = `${sourceLabel} score loaded for FID ${fid}`
+    render()
     return
   } catch (err) {
     errors.push(`Neynar API: ${err?.message || 'unavailable'}`)
@@ -236,8 +265,10 @@ async function checkScoreByFid() {
     try {
       const raw = await readScoreFromRpc(fid, rpcUrl)
       const rawNumber = Number(raw)
-      state.score = { raw: rawNumber, normalized: rawNumber / 1_000_000, type: 'fid', source: 'onchain', value: fid }
-      setLoading(false, rawNumber > 0 ? `Onchain score loaded for FID ${fid}` : `No Neynar score found for FID ${fid}`)
+      state.score = { raw: rawNumber, normalized: rawNumber / 1_000_000, type: 'fid', source: 'onchain-base', value: fid }
+      state.loading = false
+      state.status = rawNumber > 0 ? `Onchain score loaded for FID ${fid}` : `No Neynar score found for FID ${fid}`
+      render()
       return
     } catch (err) {
       errors.push(`${rpcUrl}: ${err?.shortMessage || err?.message || 'RPC failed'}`)
@@ -246,7 +277,9 @@ async function checkScoreByFid() {
 
   state.score = null
   state.errors = errors
-  setLoading(false, 'Could not read Neynar score. API and RPC unavailable, try again.')
+  state.loading = false
+  state.status = 'Could not read Neynar score. API and RPC unavailable, try again.'
+  render()
 }
 
 async function getWalletProvider() {
@@ -288,33 +321,51 @@ async function connectWallet() {
     await ensureBase(provider)
     const accounts = await provider.request({ method: 'eth_requestAccounts' })
     state.wallet = accounts?.[0] || ''
+    render()
     setStatus(`Connected ${short(state.wallet)}`)
+    return state.wallet
   } catch (err) {
     setStatus(err?.message || 'Wallet connection failed')
+    return ''
+  }
+}
+
+async function autoConnectWallet() {
+  if (state.wallet) return state.wallet
+  const provider = await getWalletProvider()
+  if (!provider) return ''
+  try {
+    await ensureBase(provider)
+    let accounts = await provider.request({ method: 'eth_accounts' }).catch(() => [])
+    if (!accounts?.[0]) accounts = await provider.request({ method: 'eth_requestAccounts' })
+    state.wallet = accounts?.[0] || ''
+    render()
+    if (state.wallet) setStatus(`Wallet ready ${short(state.wallet)}`)
+    return state.wallet
+  } catch (err) {
+    setStatus(err?.shortMessage || err?.message || 'Wallet connection needed')
+    return ''
   }
 }
 
 async function checkIn() {
-  if (!ethers.isAddress(state.recipient)) return setStatus('Set a valid receiver address first')
-  if (!state.feeEth || Number(state.feeEth) <= 0) return setStatus('Set a valid tiny fee')
   const provider = await getWalletProvider()
   if (!provider) return setStatus('No wallet provider. Open inside Farcaster or install MetaMask.')
   try {
-    setStatus('Preparing Base check-in…')
+    setStatus('Preparing GM on Base…')
     await ensureBase(provider)
-    const accounts = await provider.request({ method: 'eth_requestAccounts' })
-    const from = accounts?.[0]
+    const from = state.wallet || await autoConnectWallet()
     if (!from) return setStatus('Wallet not connected')
     state.wallet = from
-    const value = ethers.toBeHex(ethers.parseEther(state.feeEth))
     const hash = await provider.request({
       method: 'eth_sendTransaction',
-      params: [{ from, to: state.recipient, value }]
+      params: [{ from, to: from, value: '0x0', data: GM_DATA }]
     })
-    saveHistory({ hash, from, to: state.recipient, feeEth: state.feeEth, time: Date.now(), fid: state.fid || state.context?.user?.fid || null })
-    setStatus(`Checked in: ${short(hash)}`)
+    saveHistory({ hash, from, to: from, message: 'gm', value: '0', time: Date.now(), fid: state.fid || state.context?.user?.fid || null })
+    render()
+    setStatus(`GM onchain: ${short(hash)}`)
   } catch (err) {
-    setStatus(err?.shortMessage || err?.message || 'Check-in transaction failed')
+    setStatus(err?.shortMessage || err?.message || 'GM transaction failed')
   }
 }
 

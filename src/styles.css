@@ -259,6 +259,19 @@ button { cursor: pointer; }
   padding: 14px;
 }
 .form-card { display: grid; gap: 8px; }
+.gm-card { gap: 12px; }
+.gm-preview {
+  display: grid;
+  gap: 5px;
+  padding: 14px;
+  border-radius: 20px;
+  background: rgba(2,8,23,.28);
+  border: 1px solid rgba(255,255,255,.07);
+}
+.gm-preview span { color: var(--muted); font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .08em; }
+.gm-preview b { font-size: 32px; line-height: 1; letter-spacing: -.06em; }
+.gm-preview small { color: var(--muted); font-size: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
 label { color: #d9e7ff; font-size: 13px; font-weight: 850; margin-top: 5px; }
 input {
   width: 100%;
