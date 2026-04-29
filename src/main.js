@@ -343,7 +343,7 @@ async function autoConnectWallet() {
     if (state.wallet) setStatus(`Wallet ready ${short(state.wallet)}`)
     return state.wallet
   } catch (err) {
-    setStatus(err?.shortMessage || err?.message || 'Wallet connection needed')
+    console.warn('Auto wallet connect skipped:', err?.message || err)
     return ''
   }
 }
