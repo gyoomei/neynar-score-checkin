@@ -209,7 +209,7 @@ async function readScoreFromNeynarApi(fid) {
     raw: Math.round(normalized * 1_000_000),
     normalized,
     type: 'fid',
-    source: 'neynar-api',
+    source: payload.source || 'neynar-api',
     value: fid,
     profile: payload
   }
