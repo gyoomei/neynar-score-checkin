@@ -180,7 +180,8 @@ export function ScoreCard({
         )}
         <div className="flex-1 min-w-0">
           <p className="font-bold text-gray-900 truncate">{data.displayName}</p>
-          <p className="text-sm text-blue-400">@{data.username}</p>
+          <p className="text-sm text-slate-600">FID {data.fid}</p>
+          <p className="text-sm text-blue-500 font-medium">@{data.username}</p>
         </div>
         <ScoreLevelBadge label={data.scoreLabel} />
       </div>

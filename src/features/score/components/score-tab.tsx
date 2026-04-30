@@ -87,7 +87,23 @@ export function ScoreTab({
         setScoreData(null);
         setError(payload?.error ?? `Score for FID ${fid} not found.`);
       } else {
-        setScoreData(coerceScoreData(payload, fid));
+        const normalized = coerceScoreData(payload, fid);
+        const fallbackUsername = farcasterUser?.username?.trim();
+        const fallbackDisplayName = farcasterUser?.displayName?.trim();
+        const shouldUseFarcasterIdentity =
+          farcasterUser?.fid === fid &&
+          (normalized.username.startsWith("fid:") || normalized.username === String(fid));
+
+        if (shouldUseFarcasterIdentity) {
+          setScoreData({
+            ...normalized,
+            username: fallbackUsername || normalized.username,
+            displayName: fallbackDisplayName || normalized.displayName,
+            pfpUrl: farcasterUser?.pfpUrl || normalized.pfpUrl,
+          });
+        } else {
+          setScoreData(normalized);
+        }
       }
     } catch {
       setScoreData(null);
@@ -96,7 +112,7 @@ export function ScoreTab({
       setHasSearched(true);
       setIsPending(false);
     }
-  }, []);
+  }, [farcasterUser?.displayName, farcasterUser?.fid, farcasterUser?.pfpUrl, farcasterUser?.username]);
 
   useEffect(() => {
     const fid = farcasterUser?.fid;

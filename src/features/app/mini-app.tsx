@@ -15,7 +15,7 @@ function TabBar({
 }) {
   const tabs: { id: Tab; label: string; icon: string }[] = [
     { id: "score", label: "Neynar Score", icon: "⭐" },
-    { id: "checkin", label: "Check-in", icon: "📅" },
+    { id: "checkin", label: "Check-in", icon: "💙" }
   ];
   return (
     <div className="flex gap-1.5 bg-white/70 backdrop-blur-sm rounded-2xl p-1.5 border border-blue-100/80 shadow-[0_10px_28px_rgba(37,99,235,0.10)]">
