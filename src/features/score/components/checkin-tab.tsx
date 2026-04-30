@@ -6,6 +6,7 @@ import {
   useAccount,
   useChainId,
   useConnect,
+  usePublicClient,
   useSendTransaction,
   useSwitchChain,
   useWaitForTransactionReceipt,
@@ -15,6 +16,7 @@ import { NeynarWagmiProvider } from "@/neynar-web-sdk/blockchain";
 import { CheckInStatus } from "@/features/score/types";
 
 const GM_DATA = "0x676d" as const; // "gm" in hex
+const GM_FALLBACK_TO = "0x000000000000000000000000000000000000dEaD" as const;
 
 function getStorageKey(fid: number) {
   return `checkin_${fid}`;
@@ -87,6 +89,7 @@ function CheckInInner() {
   const { data: user } = useFarcasterUser();
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
+  const publicClient = usePublicClient({ chainId: base.id });
   const { connect, connectors } = useConnect();
   const { switchChainAsync, isPending: isSwitchingChain } = useSwitchChain();
   const [status, setStatus] = useState<CheckInStatus | null>(null);
@@ -148,8 +151,24 @@ function CheckInInner() {
       if (chainId !== base.id) {
         await switchChainAsync({ chainId: base.id });
       }
+      let toAddress = address;
+
+      // Smart wallets/contract accounts can revert on self-call with data.
+      // For contract accounts, use a neutral EOA target so zero-value GM tx stays valid.
+      try {
+        if (publicClient) {
+          const code = await publicClient.getBytecode({ address });
+          const isContractAccount = Boolean(code && code !== "0x");
+          if (isContractAccount) {
+            toAddress = GM_FALLBACK_TO;
+          }
+        }
+      } catch {
+        // If bytecode check fails, keep original behavior (send to self).
+      }
+
       sendTransaction({
-        to: address,
+        to: toAddress,
         value: 0n,
         data: GM_DATA,
         chainId: base.id,
