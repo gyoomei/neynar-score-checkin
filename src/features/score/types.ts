@@ -1,6 +1,6 @@
 export type NeynarScoreSource = "neynar-api" | "onchain-base";
 
-export type NeynarScoreData = {
+export interface NeynarScoreData {
   fid: number;
   username: string;
   displayName: string;
@@ -11,8 +11,14 @@ export type NeynarScoreData = {
   followingCount: number;
   verifiedAddresses: string[];
   activeStatus: string;
-  scoreSource: NeynarScoreSource;
-};
+  scoreSource: "neynar-api" | "onchain-base" | "custom-warpcast";
+  breakdown?: {
+    social: number;
+    consistency: number;
+    trust: number;
+    onchain: number;
+  };
+}
 
 export type CheckInStatus = {
   canCheckIn: boolean;

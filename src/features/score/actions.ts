@@ -93,10 +93,64 @@ async function fetchOnchainScore(fid: number): Promise<NeynarScoreData | null> {
   return null;
 }
 
+/**
+ * Fetch comprehensive score using custom Warpcast + Base onchain scoring
+ * Falls back to Neynar API if available, then onchain Base contract
+ */
+
+import { getWarpcastUser, getWarpcastMetrics } from "@/lib/warpcast";
+import { getOnchainMetrics } from "@/lib/onchain";
+import { computeCustomScore } from "@/lib/custom-scorer";
+
+async function fetchCustomScore(fid: number): Promise<NeynarScoreData | null> {
+  try {
+    // Fetch Warpcast data
+    const user = await getWarpcastUser(fid);
+    if (!user) return null;
+
+    const warpcastMetrics = await getWarpcastMetrics(fid);
+    if (!warpcastMetrics) return null;
+
+    // Fetch onchain data
+    const addresses = user.verifications || [];
+    const onchainMetrics = await getOnchainMetrics(addresses);
+
+    // Compute custom score
+    const breakdown = computeCustomScore(fid, warpcastMetrics, onchainMetrics);
+
+    return {
+      fid,
+      username: user.username || `fid:${fid}`,
+      displayName: user.displayName || user.username || `FID ${fid}`,
+      pfpUrl: user.pfp?.url || "",
+      score: breakdown.final,
+      scoreLabel: breakdown.label,
+      followerCount: warpcastMetrics.followers,
+      followingCount: warpcastMetrics.following,
+      verifiedAddresses: addresses,
+      activeStatus: "custom-warpcast",
+      scoreSource: "custom-warpcast",
+      breakdown: {
+        social: breakdown.social,
+        consistency: breakdown.consistency,
+        trust: breakdown.trust,
+        onchain: breakdown.onchain,
+      },
+    };
+  } catch (error) {
+    console.error("[custom-score] Failed:", error);
+    return null;
+  }
+}
+
 export async function fetchNeynarScore(
   fid: number,
 ): Promise<NeynarScoreData | null> {
   if (!Number.isInteger(fid) || fid <= 0) return null;
+
+  // Try custom scoring first (always available, no API key needed)
+  const customScore = await fetchCustomScore(fid);
+  if (customScore) return customScore;
 
   try {
     const apiKey = process.env.NEYNAR_API_KEY;

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Context } from "@farcaster/miniapp-sdk";
 import { NeynarScoreData } from "@/features/score/types";
 import { ScoreCard } from "@/features/score/components/score-card";
+import { ScoreBreakdown } from "@/features/score/components/score-breakdown";
 import { ShareButton } from "@/neynar-farcaster-sdk/mini";
 
 function formatScore(score: number): string {
@@ -162,6 +163,9 @@ export function ScoreTab({
     <div className="space-y-4 animate-[fade-in_.25s_ease-out]">
       {/* Score ring is visible immediately so the app does not open blank */}
       <ScoreCard data={displayedScoreData} isPreview={!scoreData} />
+
+      {/* Breakdown (only show for real data with breakdown) */}
+      {scoreData && scoreData.breakdown && <ScoreBreakdown data={scoreData} />}
 
       {/* Search by FID */}
       <div className="flex gap-2 rounded-2xl p-1 bg-white/65 backdrop-blur-sm border border-blue-100/80 shadow-[0_10px_24px_rgba(37,99,235,0.08)]">
