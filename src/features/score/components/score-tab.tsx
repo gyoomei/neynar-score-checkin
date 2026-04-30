@@ -6,6 +6,7 @@ import { NeynarScoreData } from "@/features/score/types";
 import { ScoreCard } from "@/features/score/components/score-card";
 import { ScoreBreakdown } from "@/features/score/components/score-breakdown";
 import { ShareButton } from "@/neynar-farcaster-sdk/mini";
+import { ShareCardTemplates } from "@/features/score/components/share-card-templates";
 
 function formatScore(score: number): string {
   const safeScore = Number.isFinite(score) ? Math.min(Math.max(score, 0), 1) : 0;
@@ -75,6 +76,7 @@ export function ScoreTab({
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [isPending, setIsPending] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
   const autoLoadedFidRef = useRef<number | null>(null);
 
   const fetchScore = useCallback(async (fid: number) => {
@@ -220,16 +222,33 @@ export function ScoreTab({
 
       {/* Share */}
       {scoreData && (
-        <ShareButton
-          text={`Just checked my Farcaster reputation score: ${formatScore(scoreData.score)} (${scoreData.scoreLabel}) 🎯\n\nCheck yours too! 👇`}
-          queryParams={{
-            score: formatScore(scoreData.score),
-            username: scoreData.username,
-          }}
-          className="w-full py-3.5 rounded-2xl border-2 border-blue-300/80 text-blue-700 font-bold text-sm bg-gradient-to-r from-white to-blue-50/60 active:scale-95 transition-all duration-300 shadow-[0_8px_20px_rgba(37,99,235,0.15)] hover:shadow-[0_12px_28px_rgba(37,99,235,0.22)] hover:border-blue-400 animate-[fade-in_0.5s_ease-out_0.4s_backwards]"
-        >
-          Share My Score
-        </ShareButton>
+        <>
+          <div className="flex gap-3">
+            <ShareButton
+              text={`Just checked my Farcaster reputation score: ${formatScore(scoreData.score)} (${scoreData.scoreLabel}) 🎯\n\nCheck yours too! 👇`}
+              queryParams={{
+                score: formatScore(scoreData.score),
+                username: scoreData.username,
+              }}
+              className="flex-1 py-3.5 rounded-2xl border-2 border-blue-300/80 text-blue-700 font-bold text-sm bg-gradient-to-r from-white to-blue-50/60 active:scale-95 transition-all duration-300 shadow-[0_8px_20px_rgba(37,99,235,0.15)] hover:shadow-[0_12px_28px_rgba(37,99,235,0.22)] hover:border-blue-400 animate-[fade-in_0.5s_ease-out_0.4s_backwards]"
+            >
+              Share Text
+            </ShareButton>
+            <button
+              onClick={() => setShowTemplates(true)}
+              className="px-5 py-3.5 rounded-2xl border-2 border-indigo-300/80 text-indigo-700 font-bold text-sm bg-gradient-to-r from-white to-indigo-50/60 active:scale-95 transition-all duration-300 shadow-[0_8px_20px_rgba(79,70,229,0.15)] hover:shadow-[0_12px_28px_rgba(79,70,229,0.22)] hover:border-indigo-400 animate-[fade-in_0.5s_ease-out_0.4s_backwards]"
+            >
+              🎨 Card
+            </button>
+          </div>
+          
+          {showTemplates && (
+            <ShareCardTemplates
+              data={scoreData}
+              onClose={() => setShowTemplates(false)}
+            />
+          )}
+        </>
       )}
     </div>
   );
