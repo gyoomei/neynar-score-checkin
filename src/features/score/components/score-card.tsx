@@ -66,49 +66,75 @@ function ScoreRing({ score }: { score: number }) {
 
   const color =
     targetProgress >= 0.9
-      ? "#2563EB"
+      ? "url(#gradient-elite)"
       : targetProgress >= 0.7
-        ? "#3B82F6"
+        ? "url(#gradient-veteran)"
         : targetProgress >= 0.5
-          ? "#60A5FA"
+          ? "url(#gradient-active)"
           : targetProgress >= 0.3
-            ? "#93C5FD"
-            : "#BFDBFE";
+            ? "url(#gradient-casual)"
+            : "url(#gradient-newcomer)";
 
   return (
-    <div className="relative flex items-center justify-center w-36 h-36">
+    <div className="relative flex items-center justify-center w-40 h-40">
       <svg
-        width="144"
-        height="144"
-        viewBox="0 0 144 144"
+        width="160"
+        height="160"
+        viewBox="0 0 160 160"
         className="-rotate-90"
       >
+        <defs>
+          <linearGradient id="gradient-elite" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#9333EA" />
+            <stop offset="50%" stopColor="#EC4899" />
+            <stop offset="100%" stopColor="#F59E0B" />
+          </linearGradient>
+          <linearGradient id="gradient-veteran" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#8B5CF6" />
+            <stop offset="100%" stopColor="#EC4899" />
+          </linearGradient>
+          <linearGradient id="gradient-active" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#3B82F6" />
+            <stop offset="100%" stopColor="#8B5CF6" />
+          </linearGradient>
+          <linearGradient id="gradient-casual" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#10B981" />
+            <stop offset="100%" stopColor="#3B82F6" />
+          </linearGradient>
+          <linearGradient id="gradient-newcomer" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#F59E0B" />
+            <stop offset="100%" stopColor="#10B981" />
+          </linearGradient>
+        </defs>
         <circle
-          cx="72"
-          cy="72"
+          cx="80"
+          cy="80"
           r={radius}
           fill="none"
-          stroke="#DBEAFE"
-          strokeWidth="10"
+          stroke="rgba(255,255,255,0.3)"
+          strokeWidth="12"
         />
         <circle
-          cx="72"
-          cy="72"
+          cx="80"
+          cy="80"
           r={radius}
           fill="none"
           stroke={color}
-          strokeWidth="10"
+          strokeWidth="12"
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
-          style={{ transition: "stroke-dashoffset 0.9s cubic-bezier(0.22, 1, 0.36, 1)" }}
+          style={{ 
+            transition: "stroke-dashoffset 0.9s cubic-bezier(0.22, 1, 0.36, 1)",
+            filter: "drop-shadow(0 0 8px rgba(139, 92, 246, 0.6))"
+          }}
         />
       </svg>
       <div className="absolute flex flex-col items-center">
-        <span className="text-3xl font-bold text-blue-700">
+        <span className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-purple-700 via-pink-600 to-orange-600">
           {formatScore(displayScore)}
         </span>
-        <span className="text-xs font-medium text-blue-400 mt-0.5">/ 1,00</span>
+        <span className="text-xs font-semibold text-purple-500/70 mt-1">/ 1,00</span>
       </div>
     </div>
   );
@@ -116,18 +142,18 @@ function ScoreRing({ score }: { score: number }) {
 
 function StatBadge({ label, value }: { label: string; value: string }) {
   return (
-    <div className="group flex flex-col items-center gap-1 rounded-2xl px-4 py-3 border border-blue-200/70 bg-gradient-to-b from-white via-blue-50/50 to-blue-100/60 shadow-[0_8px_20px_rgba(37,99,235,0.12)] transition-all duration-300 hover:shadow-[0_12px_28px_rgba(37,99,235,0.18)] hover:-translate-y-0.5">
-      <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-br from-blue-600 to-indigo-700 transition-transform duration-300 group-hover:scale-110">{value}</span>
-      <span className="text-xs text-blue-600 font-medium">{label}</span>
+    <div className="group flex flex-col items-center gap-1.5 rounded-2xl px-5 py-3.5 border-2 border-white/60 bg-gradient-to-br from-white/90 via-purple-50/50 to-pink-50/40 shadow-[0_8px_24px_rgba(139,92,246,0.15)] transition-all duration-300 hover:shadow-[0_12px_32px_rgba(139,92,246,0.25)] hover:-translate-y-1 hover:scale-105 backdrop-blur-sm">
+      <span className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 transition-transform duration-300 group-hover:scale-110">{value}</span>
+      <span className="text-xs text-purple-600/80 font-semibold">{label}</span>
     </div>
   );
 }
 
 function ScoreLevelBadge({ label }: { label: string }) {
   const colorMap: Record<string, string> = {
-    Elite: "bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg shadow-blue-500/50",
-    Veteran: "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-400/50",
-    Active: "bg-gradient-to-r from-blue-400 to-blue-500 text-white shadow-md shadow-blue-300/50",
+    Elite: "bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 text-white shadow-lg shadow-purple-500/50",
+    Veteran: "bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 text-white shadow-lg shadow-purple-400/50",
+    Active: "bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white shadow-md shadow-blue-400/50",
     Regular: "bg-gradient-to-r from-blue-300 to-blue-400 text-blue-900 shadow-md shadow-blue-200/50",
     Emerging: "bg-gradient-to-r from-blue-200 to-blue-300 text-blue-800 shadow-sm shadow-blue-100/50",
     Newcomer: "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 shadow-sm shadow-blue-50/50",
@@ -156,9 +182,9 @@ export function ScoreCard({
     : 0;
 
   return (
-    <div className={`relative overflow-hidden bg-gradient-to-br from-white via-blue-50/40 to-indigo-50/30 backdrop-blur-xl rounded-3xl shadow-[0_20px_60px_rgba(37,99,235,0.20)] border border-blue-200/70 p-6 space-y-4 transition-all duration-500 hover:shadow-[0_25px_70px_rgba(37,99,235,0.25)] animate-[scale-in_0.5s_ease-out] ${isPreview ? "opacity-95" : ""}`}>
-      <div className="pointer-events-none absolute -top-24 -right-20 w-64 h-64 rounded-full bg-gradient-to-br from-blue-400/30 to-indigo-400/20 blur-3xl animate-pulse" />
-      <div className="pointer-events-none absolute -bottom-24 -left-20 w-60 h-60 rounded-full bg-gradient-to-br from-violet-400/25 to-purple-400/15 blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+    <div className={`relative overflow-hidden bg-gradient-to-br from-white/95 via-purple-50/60 to-pink-50/40 backdrop-blur-xl rounded-3xl shadow-[0_20px_60px_rgba(139,92,246,0.25)] border-2 border-white/60 p-6 space-y-5 transition-all duration-500 hover:shadow-[0_25px_70px_rgba(139,92,246,0.35)] animate-[scale-in_0.5s_ease-out] ${isPreview ? "opacity-95" : ""}`}>
+      <div className="pointer-events-none absolute -top-24 -right-20 w-64 h-64 rounded-full bg-gradient-to-br from-purple-400/30 to-pink-400/20 blur-3xl animate-pulse" />
+      <div className="pointer-events-none absolute -bottom-24 -left-20 w-60 h-60 rounded-full bg-gradient-to-br from-orange-400/25 to-yellow-400/15 blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
 
       {/* Profile */}
       <div className="relative flex items-center gap-3.5 group">
@@ -169,19 +195,19 @@ export function ScoreCard({
             alt={data.displayName}
             width={56}
             height={56}
-            className="rounded-full border-3 border-white shadow-lg object-cover w-14 h-14 transition-transform duration-300 group-hover:scale-105 ring-2 ring-blue-200/50"
+            className="rounded-full border-3 border-white shadow-xl object-cover w-14 h-14 transition-transform duration-300 group-hover:scale-110 ring-2 ring-purple-200/60"
           />
         ) : (
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-105 ring-2 ring-blue-200/50">
+          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 flex items-center justify-center shadow-xl transition-transform duration-300 group-hover:scale-110 ring-2 ring-purple-200/60">
             <span className="text-white font-bold text-xl">
               {(data.displayName ?? data.username)?.[0]?.toUpperCase() ?? "?"}
             </span>
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-gray-900 truncate text-lg">{data.displayName}</p>
+          <p className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-700 to-pink-600 truncate text-lg">{data.displayName}</p>
           <p className="text-sm text-slate-600 font-medium">FID {data.fid}</p>
-          <p className="text-sm text-blue-600 font-semibold">@{data.username}</p>
+          <p className="text-sm text-purple-600 font-semibold">@{data.username}</p>
         </div>
         <ScoreLevelBadge label={data.scoreLabel} />
       </div>
