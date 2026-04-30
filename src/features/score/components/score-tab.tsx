@@ -46,6 +46,7 @@ function coerceScoreData(payload: unknown, requestedFid: number): NeynarScoreDat
     followingCount: Math.max(0, Math.trunc(readNumber(record.followingCount ?? record.following_count, 0))),
     verifiedAddresses,
     activeStatus: String(record.activeStatus ?? record.active_status ?? "inactive"),
+    scoreSource: record.scoreSource === "neynar-api" ? "neynar-api" : "onchain-base",
   };
 }
 
@@ -60,6 +61,7 @@ const previewScoreData: NeynarScoreData = {
   followingCount: 0,
   verifiedAddresses: [],
   activeStatus: "preview",
+  scoreSource: "onchain-base",
 };
 
 export function ScoreTab({

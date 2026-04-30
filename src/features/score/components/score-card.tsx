@@ -197,7 +197,7 @@ export function ScoreCard({
         />
       </div>
 
-      {/* Active status */}
+      {/* Active status + source */}
       <div className="flex items-center gap-2 px-1">
         <span
           className={`inline-block w-2 h-2 rounded-full ${data.activeStatus === "active" ? "bg-green-400" : "bg-gray-300"}`}
@@ -206,6 +206,12 @@ export function ScoreCard({
           {data.activeStatus === "active" ? "Active on Farcaster" : "Inactive"}
         </span>
         <span className="ml-auto text-xs text-gray-400">FID #{data.fid}</span>
+      </div>
+
+      <div className="px-1">
+        <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-medium text-blue-700 border border-blue-100">
+          Source: {data.scoreSource === "neynar-api" ? "Neynar API" : "Onchain Base"}
+        </span>
       </div>
     </div>
   );

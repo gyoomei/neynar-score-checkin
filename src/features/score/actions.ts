@@ -84,6 +84,7 @@ async function fetchOnchainScore(fid: number): Promise<NeynarScoreData | null> {
         followingCount: 0,
         verifiedAddresses: [],
         activeStatus: "onchain-base",
+        scoreSource: "onchain-base",
       };
     } catch {
       // Try the next public Base RPC fallback.
@@ -108,7 +109,7 @@ export async function fetchNeynarScore(
           "x-api-key": apiKey,
           accept: "application/json",
         },
-        next: { revalidate: 60 },
+        cache: "no-store",
       },
     );
 
@@ -140,8 +141,14 @@ export async function fetchNeynarScore(
       followingCount: Number(userRecord.following_count ?? userRecord.followingCount ?? 0),
       verifiedAddresses: verifiedAddresses?.eth_addresses ?? [],
       activeStatus: String(userRecord.active_status ?? userRecord.activeStatus ?? "active"),
+      scoreSource: "neynar-api",
     };
-  } catch {
-    return fetchOnchainScore(fid);
+  } catch (error) {
+    const fallback = await fetchOnchainScore(fid);
+    if (fallback) return fallback;
+
+    throw new Error(
+      `[score] Neynar + onchain fallback failed for fid ${fid}: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 }

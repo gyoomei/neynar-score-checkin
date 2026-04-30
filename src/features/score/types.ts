@@ -1,3 +1,5 @@
+export type NeynarScoreSource = "neynar-api" | "onchain-base";
+
 export type NeynarScoreData = {
   fid: number;
   username: string;
@@ -9,6 +11,7 @@ export type NeynarScoreData = {
   followingCount: number;
   verifiedAddresses: string[];
   activeStatus: string;
+  scoreSource: NeynarScoreSource;
 };
 
 export type CheckInStatus = {
