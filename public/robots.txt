@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://neynar-score-checkin.vercel.app/sitemap.xml
