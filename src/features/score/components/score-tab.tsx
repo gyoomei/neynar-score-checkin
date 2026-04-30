@@ -120,8 +120,31 @@ export function ScoreTab({
 
     autoLoadedFidRef.current = fid;
     setFidInput(String(fid));
+
+    // Show Farcaster identity instantly while score is loading
+    setScoreData((prev) => ({
+      fid,
+      username: farcasterUser?.username?.trim() || prev?.username || `fid:${fid}`,
+      displayName:
+        farcasterUser?.displayName?.trim() || prev?.displayName || farcasterUser?.username?.trim() || `FID ${fid}`,
+      pfpUrl: farcasterUser?.pfpUrl || prev?.pfpUrl || "",
+      score: prev?.score ?? 0,
+      scoreLabel: prev?.scoreLabel ?? "Newcomer",
+      followerCount: prev?.followerCount ?? 0,
+      followingCount: prev?.followingCount ?? 0,
+      verifiedAddresses: prev?.verifiedAddresses ?? [],
+      activeStatus: prev?.activeStatus ?? "loading",
+      scoreSource: prev?.scoreSource ?? "onchain-base",
+    }));
+
     void fetchScore(fid);
-  }, [farcasterUser?.fid, fetchScore]);
+  }, [
+    farcasterUser?.displayName,
+    farcasterUser?.fid,
+    farcasterUser?.pfpUrl,
+    farcasterUser?.username,
+    fetchScore,
+  ]);
 
   async function handleSearch() {
     const fid = Number.parseInt(fidInput.trim(), 10);
@@ -193,7 +216,7 @@ export function ScoreTab({
       {/* Share */}
       {scoreData && (
         <ShareButton
-          text={`FID ${scoreData.fid} Neynar Score is ${formatScore(scoreData.score)} (${scoreData.scoreLabel})! Check your Farcaster score 👇`}
+          text={`Neynar Score aku ${formatScore(scoreData.score)} (${scoreData.scoreLabel}). Cek skor Farcaster kamu juga 👇`}
           queryParams={{
             score: formatScore(scoreData.score),
             username: scoreData.username,

@@ -212,7 +212,6 @@ function CheckInInner() {
               GM onchain on Base, no fee except gas
             </p>
           </div>
-          <div className="text-4xl">💙</div>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-white/15 rounded-xl p-3 text-center">

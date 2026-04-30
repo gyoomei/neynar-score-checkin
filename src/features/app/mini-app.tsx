@@ -13,9 +13,9 @@ function TabBar({
   active: Tab;
   onChange: (t: Tab) => void;
 }) {
-  const tabs: { id: Tab; label: string; icon: string }[] = [
+  const tabs: { id: Tab; label: string; icon?: string }[] = [
     { id: "score", label: "Neynar Score", icon: "⭐" },
-    { id: "checkin", label: "Check-in", icon: "💙" }
+    { id: "checkin", label: "Check-in" },
   ];
   return (
     <div className="flex gap-1.5 bg-white/70 backdrop-blur-sm rounded-2xl p-1.5 border border-blue-100/80 shadow-[0_10px_28px_rgba(37,99,235,0.10)]">
@@ -29,7 +29,7 @@ function TabBar({
               : "text-blue-500/90 hover:text-blue-700 hover:bg-white/80"
           }`}
         >
-          <span>{t.icon}</span>
+          {t.icon ? <span>{t.icon}</span> : null}
           <span>{t.label}</span>
         </button>
       ))}
@@ -39,7 +39,7 @@ function TabBar({
 
 export function MiniApp() {
   const [activeTab, setActiveTab] = useState<Tab>("score");
-  const { data: user, isLoading } = useFarcasterUser();
+  const { data: user } = useFarcasterUser();
 
   return (
     <div
@@ -56,7 +56,7 @@ export function MiniApp() {
           </h1>
           <p className="text-xs text-blue-500/90">Your Farcaster reputation</p>
         </div>
-        {!isLoading && user && (
+        {user && (
           <div className="flex items-center gap-2">
             {user.pfpUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
