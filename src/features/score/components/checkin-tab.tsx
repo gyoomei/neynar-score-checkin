@@ -202,9 +202,9 @@ function CheckInInner() {
   const totalCheckIns = status?.totalCheckIns ?? 0;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-[fade-in_.25s_ease-out]">
       {/* Stats header */}
-      <div className="bg-gradient-to-br from-blue-600 to-blue-500 rounded-2xl p-5 text-white">
+      <div className="bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-500 rounded-3xl p-5 text-white shadow-[0_18px_40px_rgba(37,99,235,0.35)] border border-white/30">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="font-bold text-lg">Daily Check-in</h2>
@@ -227,7 +227,7 @@ function CheckInInner() {
       </div>
 
       {/* Info */}
-      <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 space-y-2">
+      <div className="bg-white/75 backdrop-blur-sm border border-blue-100 rounded-2xl p-4 space-y-2 shadow-[0_10px_24px_rgba(37,99,235,0.08)]">
         <div className="flex items-center gap-2">
           <span className="text-blue-500">💡</span>
           <span className="text-sm font-semibold text-blue-700">
@@ -259,7 +259,7 @@ function CheckInInner() {
 
       {/* Tx hash */}
       {txHash && (
-        <div className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 flex items-center gap-2">
+        <div className="bg-white/85 backdrop-blur-sm border border-slate-200 rounded-xl px-4 py-2.5 flex items-center gap-2 shadow-[0_8px_20px_rgba(15,23,42,0.06)]">
           <span className="text-xs text-gray-400">Tx:</span>
           <a
             href={`https://basescan.org/tx/${txHash}`}
@@ -288,7 +288,7 @@ function CheckInInner() {
 
       {/* CTA */}
       {!canCheckIn && !justDone ? (
-        <div className="w-full py-4 rounded-2xl border-2 border-blue-200 bg-blue-50 text-center">
+        <div className="w-full py-4 rounded-2xl border-2 border-blue-200 bg-white/70 backdrop-blur-sm text-center shadow-[0_8px_20px_rgba(37,99,235,0.08)]">
           <p className="text-sm font-semibold text-blue-600">
             Already checked in today ✓
           </p>
@@ -298,7 +298,7 @@ function CheckInInner() {
         <button
           onClick={handleCheckIn}
           disabled={!isConnected || isSwitchingChain || isSending || isConfirming || justDone}
-          className="w-full py-4 rounded-2xl bg-blue-600 text-white font-bold text-base active:scale-95 transition-all disabled:opacity-60 shadow-md shadow-blue-200 flex items-center justify-center gap-2"
+          className="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold text-base active:scale-95 transition-all disabled:opacity-60 shadow-[0_14px_30px_rgba(37,99,235,0.35)] flex items-center justify-center gap-2"
         >
           {isSwitchingChain ? (
             <>

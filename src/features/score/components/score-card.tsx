@@ -116,9 +116,9 @@ function ScoreRing({ score }: { score: number }) {
 
 function StatBadge({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col items-center gap-0.5 bg-blue-50 rounded-xl px-4 py-2.5">
+    <div className="flex flex-col items-center gap-0.5 rounded-2xl px-4 py-2.5 border border-blue-100 bg-gradient-to-b from-white to-blue-50/70 shadow-[0_6px_16px_rgba(37,99,235,0.08)]">
       <span className="text-base font-bold text-blue-700">{value}</span>
-      <span className="text-xs text-blue-400">{label}</span>
+      <span className="text-xs text-blue-500">{label}</span>
     </div>
   );
 }
@@ -156,9 +156,12 @@ export function ScoreCard({
     : 0;
 
   return (
-    <div className={`bg-white rounded-2xl shadow-sm border border-blue-100 p-5 space-y-4 ${isPreview ? "opacity-95" : ""}`}>
+    <div className={`relative overflow-hidden bg-white/90 backdrop-blur-sm rounded-3xl shadow-[0_16px_48px_rgba(37,99,235,0.14)] border border-blue-100/90 p-5 space-y-4 ${isPreview ? "opacity-95" : ""}`}>
+      <div className="pointer-events-none absolute -top-20 -right-16 w-56 h-56 rounded-full bg-blue-200/35 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-20 -left-16 w-52 h-52 rounded-full bg-indigo-200/25 blur-3xl" />
+
       {/* Profile */}
-      <div className="flex items-center gap-3">
+      <div className="relative flex items-center gap-3">
         {data.pfpUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -183,7 +186,7 @@ export function ScoreCard({
       </div>
 
       {/* Score Ring */}
-      <div className="flex justify-center py-2">
+      <div className="relative flex justify-center py-2">
         <ScoreRing score={safeScore(data.score)} />
       </div>
 
@@ -200,16 +203,16 @@ export function ScoreCard({
       {/* Active status + source */}
       <div className="flex items-center gap-2 px-1">
         <span
-          className={`inline-block w-2 h-2 rounded-full ${data.activeStatus === "active" ? "bg-green-400" : "bg-gray-300"}`}
+          className={`inline-block w-2 h-2 rounded-full ${data.activeStatus === "active" ? "bg-emerald-500" : "bg-slate-300"}`}
         />
-        <span className="text-xs text-gray-500">
+        <span className="text-xs text-slate-600">
           {data.activeStatus === "active" ? "Active on Farcaster" : "Inactive"}
         </span>
-        <span className="ml-auto text-xs text-gray-400">FID #{data.fid}</span>
+        <span className="ml-auto text-xs text-slate-500">FID #{data.fid}</span>
       </div>
 
       <div className="px-1">
-        <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-medium text-blue-700 border border-blue-100">
+        <span className="inline-flex items-center rounded-full bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-blue-700 border border-blue-200 shadow-sm">
           Source: {data.scoreSource === "neynar-api" ? "Neynar API" : "Onchain Base"}
         </span>
       </div>

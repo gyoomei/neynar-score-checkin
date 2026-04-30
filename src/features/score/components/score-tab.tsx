@@ -120,12 +120,12 @@ export function ScoreTab({
   const displayedScoreData = scoreData ?? previewScoreData;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-[fade-in_.25s_ease-out]">
       {/* Score ring is visible immediately so the app does not open blank */}
       <ScoreCard data={displayedScoreData} isPreview={!scoreData} />
 
       {/* Search by FID */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 rounded-2xl p-1 bg-white/65 backdrop-blur-sm border border-blue-100/80 shadow-[0_10px_24px_rgba(37,99,235,0.08)]">
         <input
           type="text"
           inputMode="numeric"
@@ -139,13 +139,13 @@ export function ScoreTab({
             }
           }}
           placeholder="Enter Farcaster FID"
-          className="flex-1 px-4 py-3 rounded-xl border border-blue-200 bg-white text-sm text-gray-800 placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent"
+          className="flex-1 px-4 py-3 rounded-xl border border-blue-200/80 bg-white text-sm text-slate-800 placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-shadow"
         />
         <button
           type="button"
           onClick={handleSearch}
           disabled={isPending}
-          className="px-4 py-3 rounded-xl bg-blue-600 text-white font-semibold text-sm active:scale-95 transition-all disabled:opacity-50"
+          className="px-4 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold text-sm active:scale-95 transition-all disabled:opacity-50 shadow-[0_10px_20px_rgba(37,99,235,0.30)]"
         >
           {isPending ? "Checking…" : "Check"}
         </button>
