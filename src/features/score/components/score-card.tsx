@@ -116,25 +116,25 @@ function ScoreRing({ score }: { score: number }) {
 
 function StatBadge({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col items-center gap-0.5 rounded-2xl px-4 py-2.5 border border-blue-100 bg-gradient-to-b from-white to-blue-50/70 shadow-[0_6px_16px_rgba(37,99,235,0.08)]">
-      <span className="text-base font-bold text-blue-700">{value}</span>
-      <span className="text-xs text-blue-500">{label}</span>
+    <div className="group flex flex-col items-center gap-1 rounded-2xl px-4 py-3 border border-blue-200/70 bg-gradient-to-b from-white via-blue-50/50 to-blue-100/60 shadow-[0_8px_20px_rgba(37,99,235,0.12)] transition-all duration-300 hover:shadow-[0_12px_28px_rgba(37,99,235,0.18)] hover:-translate-y-0.5">
+      <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-br from-blue-600 to-indigo-700 transition-transform duration-300 group-hover:scale-110">{value}</span>
+      <span className="text-xs text-blue-600 font-medium">{label}</span>
     </div>
   );
 }
 
 function ScoreLevelBadge({ label }: { label: string }) {
   const colorMap: Record<string, string> = {
-    Elite: "bg-blue-600 text-white",
-    Veteran: "bg-blue-500 text-white",
-    Active: "bg-blue-400 text-white",
-    Regular: "bg-blue-300 text-blue-900",
-    Emerging: "bg-blue-200 text-blue-800",
-    Newcomer: "bg-blue-100 text-blue-600",
+    Elite: "bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg shadow-blue-500/50",
+    Veteran: "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-400/50",
+    Active: "bg-gradient-to-r from-blue-400 to-blue-500 text-white shadow-md shadow-blue-300/50",
+    Regular: "bg-gradient-to-r from-blue-300 to-blue-400 text-blue-900 shadow-md shadow-blue-200/50",
+    Emerging: "bg-gradient-to-r from-blue-200 to-blue-300 text-blue-800 shadow-sm shadow-blue-100/50",
+    Newcomer: "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 shadow-sm shadow-blue-50/50",
   };
-  const cls = colorMap[label] ?? "bg-blue-100 text-blue-600";
+  const cls = colorMap[label] ?? "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 shadow-sm";
   return (
-    <span className={`text-xs font-semibold px-3 py-1 rounded-full ${cls}`}>
+    <span className={`text-xs font-bold px-3.5 py-1.5 rounded-full ${cls} transition-all duration-300 hover:scale-105 animate-[fade-in_0.6s_ease-out]`}>
       {label}
     </span>
   );
@@ -156,32 +156,32 @@ export function ScoreCard({
     : 0;
 
   return (
-    <div className={`relative overflow-hidden bg-white/90 backdrop-blur-sm rounded-3xl shadow-[0_16px_48px_rgba(37,99,235,0.14)] border border-blue-100/90 p-5 space-y-4 ${isPreview ? "opacity-95" : ""}`}>
-      <div className="pointer-events-none absolute -top-20 -right-16 w-56 h-56 rounded-full bg-blue-200/35 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-20 -left-16 w-52 h-52 rounded-full bg-indigo-200/25 blur-3xl" />
+    <div className={`relative overflow-hidden bg-gradient-to-br from-white via-blue-50/40 to-indigo-50/30 backdrop-blur-xl rounded-3xl shadow-[0_20px_60px_rgba(37,99,235,0.20)] border border-blue-200/70 p-6 space-y-4 transition-all duration-500 hover:shadow-[0_25px_70px_rgba(37,99,235,0.25)] animate-[scale-in_0.5s_ease-out] ${isPreview ? "opacity-95" : ""}`}>
+      <div className="pointer-events-none absolute -top-24 -right-20 w-64 h-64 rounded-full bg-gradient-to-br from-blue-400/30 to-indigo-400/20 blur-3xl animate-pulse" />
+      <div className="pointer-events-none absolute -bottom-24 -left-20 w-60 h-60 rounded-full bg-gradient-to-br from-violet-400/25 to-purple-400/15 blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
 
       {/* Profile */}
-      <div className="relative flex items-center gap-3">
+      <div className="relative flex items-center gap-3.5 group">
         {data.pfpUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={data.pfpUrl}
             alt={data.displayName}
-            width={48}
-            height={48}
-            className="rounded-full border-2 border-blue-100 object-cover w-12 h-12"
+            width={56}
+            height={56}
+            className="rounded-full border-3 border-white shadow-lg object-cover w-14 h-14 transition-transform duration-300 group-hover:scale-105 ring-2 ring-blue-200/50"
           />
         ) : (
-          <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-            <span className="text-blue-600 font-bold text-lg">
+          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-105 ring-2 ring-blue-200/50">
+            <span className="text-white font-bold text-xl">
               {(data.displayName ?? data.username)?.[0]?.toUpperCase() ?? "?"}
             </span>
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-gray-900 truncate">{data.displayName}</p>
-          <p className="text-sm text-slate-600">FID {data.fid}</p>
-          <p className="text-sm text-blue-500 font-medium">@{data.username}</p>
+          <p className="font-bold text-gray-900 truncate text-lg">{data.displayName}</p>
+          <p className="text-sm text-slate-600 font-medium">FID {data.fid}</p>
+          <p className="text-sm text-blue-600 font-semibold">@{data.username}</p>
         </div>
         <ScoreLevelBadge label={data.scoreLabel} />
       </div>

@@ -168,7 +168,7 @@ export function ScoreTab({
       {scoreData && scoreData.breakdown && <ScoreBreakdown data={scoreData} />}
 
       {/* Search by FID */}
-      <div className="flex gap-2 rounded-2xl p-1 bg-white/65 backdrop-blur-sm border border-blue-100/80 shadow-[0_10px_24px_rgba(37,99,235,0.08)]">
+      <div className="flex gap-2 rounded-2xl p-1.5 bg-gradient-to-br from-white via-blue-50/60 to-indigo-50/40 backdrop-blur-md border border-blue-200/70 shadow-[0_12px_32px_rgba(37,99,235,0.12)] animate-[fade-in_0.4s_ease-out_0.2s_backwards]">
         <input
           type="text"
           inputMode="numeric"
@@ -182,35 +182,36 @@ export function ScoreTab({
             }
           }}
           placeholder="Enter Farcaster FID"
-          className="flex-1 px-4 py-3 rounded-xl border border-blue-200/80 bg-white text-sm text-slate-800 placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-shadow"
+          className="flex-1 px-4 py-3.5 rounded-xl border border-blue-200/80 bg-white/90 text-sm text-slate-800 placeholder-blue-400/70 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-300 focus:shadow-lg"
         />
         <button
           type="button"
           onClick={handleSearch}
           disabled={isPending}
-          className="px-4 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold text-sm active:scale-95 transition-all disabled:opacity-50 shadow-[0_10px_20px_rgba(37,99,235,0.30)]"
+          className="px-5 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 text-white font-bold text-sm active:scale-95 transition-all duration-300 disabled:opacity-50 shadow-[0_12px_24px_rgba(37,99,235,0.35)] hover:shadow-[0_16px_32px_rgba(37,99,235,0.45)] disabled:shadow-none relative overflow-hidden group"
         >
-          {isPending ? "Checking…" : "Check"}
+          <span className="relative z-10">{isPending ? "Checking…" : "Check"}</span>
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />
         </button>
       </div>
 
       {/* Error */}
       {error && (
-        <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3 text-sm text-red-600">
+        <div className="bg-gradient-to-r from-red-50 to-rose-50 border border-red-200/80 rounded-2xl px-4 py-3.5 text-sm text-red-700 font-medium shadow-lg shadow-red-100/50 animate-[slide-up_0.3s_ease-out]">
           {error}
         </div>
       )}
 
       {/* Loading state */}
       {isPending && !scoreData && (
-        <div className="bg-white/70 border border-blue-100 rounded-xl px-4 py-3 text-sm text-blue-500 text-center">
+        <div className="bg-gradient-to-r from-white to-blue-50/70 border border-blue-200/70 rounded-2xl px-4 py-3.5 text-sm text-blue-600 text-center font-medium shadow-lg animate-pulse">
           Loading your Neynar ring…
         </div>
       )}
 
       {/* Hint / empty state */}
       {!hasSearched && !scoreData && !isPending && (
-        <div className="bg-white/70 border border-blue-100 rounded-xl px-4 py-3 text-sm text-blue-400 text-center">
+        <div className="bg-gradient-to-r from-white to-blue-50/50 border border-blue-200/60 rounded-2xl px-4 py-3.5 text-sm text-blue-500 text-center font-medium shadow-md animate-[fade-in_0.5s_ease-out_0.3s_backwards]">
           {farcasterUser?.fid
             ? "Opening your Farcaster score automatically…"
             : "Enter a Farcaster FID to fill the ring with a live Neynar score."}
@@ -225,7 +226,7 @@ export function ScoreTab({
             score: formatScore(scoreData.score),
             username: scoreData.username,
           }}
-          className="w-full py-3 rounded-2xl border-2 border-blue-200 text-blue-600 font-semibold text-sm bg-white active:scale-95 transition-all"
+          className="w-full py-3.5 rounded-2xl border-2 border-blue-300/80 text-blue-700 font-bold text-sm bg-gradient-to-r from-white to-blue-50/60 active:scale-95 transition-all duration-300 shadow-[0_8px_20px_rgba(37,99,235,0.15)] hover:shadow-[0_12px_28px_rgba(37,99,235,0.22)] hover:border-blue-400 animate-[fade-in_0.5s_ease-out_0.4s_backwards]"
         >
           Share My Score
         </ShareButton>
