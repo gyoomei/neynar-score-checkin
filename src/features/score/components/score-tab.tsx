@@ -221,7 +221,7 @@ export function ScoreTab({
       {/* Share */}
       {scoreData && (
         <ShareButton
-          text={`Neynar Score aku ${formatScore(scoreData.score)} (${scoreData.scoreLabel}). Cek skor Farcaster kamu juga 👇`}
+          text={`Just checked my Farcaster reputation score: ${formatScore(scoreData.score)} (${scoreData.scoreLabel}) 🎯\n\nCheck yours too! 👇`}
           queryParams={{
             score: formatScore(scoreData.score),
             username: scoreData.username,
