@@ -131,8 +131,7 @@ function TemplatePreview({ template, data }: { template: Template; data: NeynarS
   if (template === "minimal") {
     return (
       <div className="bg-white p-8 flex flex-col items-center justify-center aspect-square">
-        <div className="text-6xl font-bold text-slate-900 mb-2">{score}</div>
-        <div className="text-sm text-slate-500 mb-4">{data.scoreLabel}</div>
+        <div className="text-6xl font-bold text-slate-900 mb-4">{score}</div>
         <div className="text-xs text-slate-400">@{data.username}</div>
         <div className="mt-6 text-xs text-slate-400">Neynar Score</div>
       </div>
@@ -144,8 +143,7 @@ function TemplatePreview({ template, data }: { template: Template; data: NeynarS
       <div className="bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 p-8 flex flex-col items-center justify-center aspect-square relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.2),transparent_50%)]" />
         <div className="relative z-10 text-center">
-          <div className="text-6xl font-bold text-white mb-2">{score}</div>
-          <div className="text-sm text-white/90 mb-4 font-semibold">{data.scoreLabel}</div>
+          <div className="text-6xl font-bold text-white mb-4">{score}</div>
           <div className="text-xs text-white/80">@{data.username}</div>
           <div className="mt-6 text-xs text-white/70">Farcaster Reputation</div>
         </div>
@@ -158,11 +156,8 @@ function TemplatePreview({ template, data }: { template: Template; data: NeynarS
       <div className="bg-black p-8 flex flex-col items-center justify-center aspect-square relative">
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 via-transparent to-pink-500/20" />
         <div className="relative z-10 text-center">
-          <div className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-400 mb-2 drop-shadow-[0_0_20px_rgba(34,211,238,0.5)]">
+          <div className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-400 mb-4 drop-shadow-[0_0_20px_rgba(34,211,238,0.5)]">
             {score}
-          </div>
-          <div className="text-sm text-cyan-300 mb-4 font-bold drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">
-            {data.scoreLabel}
           </div>
           <div className="text-xs text-pink-300">@{data.username}</div>
           <div className="mt-6 text-xs text-slate-400">NEYNAR SCORE</div>
@@ -174,8 +169,7 @@ function TemplatePreview({ template, data }: { template: Template; data: NeynarS
   // dark template
   return (
     <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8 flex flex-col items-center justify-center aspect-square border border-slate-700">
-      <div className="text-6xl font-bold text-white mb-2">{score}</div>
-      <div className="text-sm text-blue-400 mb-4 font-semibold">{data.scoreLabel}</div>
+      <div className="text-6xl font-bold text-white mb-4">{score}</div>
       <div className="text-xs text-slate-400">@{data.username}</div>
       <div className="mt-6 text-xs text-slate-500 uppercase tracking-wider">Neynar Score</div>
     </div>
