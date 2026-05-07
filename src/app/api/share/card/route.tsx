@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const template = searchParams.get("template") || "gradient";
   const score = searchParams.get("score") || "0,00";
+  const label = searchParams.get("label") || "Newcomer";
   const username = searchParams.get("username") || "user";
 
   const width = 800;
@@ -28,6 +29,9 @@ export async function GET(request: NextRequest) {
         >
           <div style={{ fontSize: 160, fontWeight: "bold", color: "#0F172A" }}>
             {score}
+          </div>
+          <div style={{ fontSize: 32, color: "#64748B", marginTop: 20 }}>
+            {label}
           </div>
           <div style={{ fontSize: 24, color: "#94A3B8", marginTop: 40 }}>
             @{username}
@@ -77,6 +81,16 @@ export async function GET(request: NextRequest) {
           >
             <div style={{ fontSize: 160, fontWeight: "bold", color: "white" }}>
               {score}
+            </div>
+            <div
+              style={{
+                fontSize: 32,
+                color: "rgba(255,255,255,0.9)",
+                marginTop: 20,
+                fontWeight: "600",
+              }}
+            >
+              {label}
             </div>
             <div style={{ fontSize: 24, color: "rgba(255,255,255,0.8)", marginTop: 40 }}>
               @{username}
@@ -136,6 +150,16 @@ export async function GET(request: NextRequest) {
             >
               {score}
             </div>
+            <div
+              style={{
+                fontSize: 32,
+                color: "#22D3EE",
+                marginTop: 20,
+                fontWeight: "bold",
+              }}
+            >
+              {label}
+            </div>
             <div style={{ fontSize: 24, color: "#F9A8D4", marginTop: 40 }}>
               @{username}
             </div>
@@ -166,6 +190,16 @@ export async function GET(request: NextRequest) {
       >
         <div style={{ fontSize: 160, fontWeight: "bold", color: "white" }}>
           {score}
+        </div>
+        <div
+          style={{
+            fontSize: 32,
+            color: "#60A5FA",
+            marginTop: 20,
+            fontWeight: "600",
+          }}
+        >
+          {label}
         </div>
         <div style={{ fontSize: 24, color: "#94A3B8", marginTop: 40 }}>
           @{username}
