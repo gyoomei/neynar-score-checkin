@@ -31,7 +31,7 @@ export function ShareCardTemplates({ data, onClose }: ShareCardTemplatesProps) {
     try {
       // Generate image via API
       const response = await fetch(
-        `/api/share/card?template=${selectedTemplate}&fid=${data.fid}&score=${data.score}&label=${data.scoreLabel}&username=${data.username}`
+        `/api/share/card?template=${selectedTemplate}&fid=${data.fid}&score=${data.score}&username=${data.username}`
       );
       
       if (!response.ok) throw new Error("Failed to generate card");

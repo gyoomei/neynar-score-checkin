@@ -149,23 +149,6 @@ function StatBadge({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ScoreLevelBadge({ label }: { label: string }) {
-  const colorMap: Record<string, string> = {
-    Elite: "bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 text-white shadow-lg shadow-purple-500/50",
-    Veteran: "bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 text-white shadow-lg shadow-purple-400/50",
-    Active: "bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white shadow-md shadow-blue-400/50",
-    Regular: "bg-gradient-to-r from-blue-300 to-blue-400 text-blue-900 shadow-md shadow-blue-200/50",
-    Emerging: "bg-gradient-to-r from-blue-200 to-blue-300 text-blue-800 shadow-sm shadow-blue-100/50",
-    Newcomer: "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 shadow-sm shadow-blue-50/50",
-  };
-  const cls = colorMap[label] ?? "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 shadow-sm";
-  return (
-    <span className={`text-xs font-bold px-3.5 py-1.5 rounded-full ${cls} transition-all duration-300 hover:scale-105 animate-[fade-in_0.6s_ease-out]`}>
-      {label}
-    </span>
-  );
-}
-
 export function ScoreCard({
   data,
   isPreview = false,
@@ -209,7 +192,6 @@ export function ScoreCard({
           <p className="text-sm text-slate-600 font-medium">FID {data.fid}</p>
           <p className="text-sm text-purple-600 font-semibold">@{data.username}</p>
         </div>
-        <ScoreLevelBadge label={data.scoreLabel} />
       </div>
 
       {/* Score Ring */}
